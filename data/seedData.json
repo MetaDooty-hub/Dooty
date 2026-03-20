@@ -1,0 +1,16 @@
+{
+  "AR": [
+    { "meta": "Warzone AR Anchor – Kilo 141", "loadouts": [{ "weaponName": "Kilo 141", "attachments": ["Monolithic Suppressor", "Singuard 19.8", "VLK 3.0x"], "note": "Balanced mid-range" }] },
+    { "meta": "BO6 AR Anchor – AK-74u", "loadouts": [{ "weaponName": "AK-74u", "attachments": ["Muzzle Brake", "10.2 Barrel", "Microflex LED"], "note": "Fast close-range" }] }
+  ],
+  "SMG": [
+    { "meta": "Warzone SMG Anchor – MP5", "loadouts": [{ "weaponName": "MP5", "attachments": ["Monolithic Suppressor", "Carver Underbarrel", "Microflex"], "note": "Versatile and fast" }] }
+  ],
+  "Sniper": [
+    { "meta": "Warzone Sniper Anchor – HDR", "loadouts": [{ "weaponName": "HDR", "attachments": ["Monolithic Suppressor", "26.9", "Talon 5x"], "note": "Long-range power" }] }
+  ],
+  "LMG": [], "Shotgun": [], "DMR": [], "Other": [],
+  "BO7": [
+    { "meta": "BO7 Placeholder", "loadouts": [{ "weaponName": "—", "attachments": [], "note": "Coming soon" }] }
+  ]
+}
