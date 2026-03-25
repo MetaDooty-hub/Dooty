@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import seedData from '../data/seedData.json';
+import { useState, useEffect } from 'react';
+
+const SUPABASE_URL = 'https://fllbxwcmpifwtptkzjva.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbGJ4d2NtcGlmd3RwdGt6anZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NjgzNjQsImV4cCI6MjA5MDA0NDM2NH0.hLUFdtpoBXz7quAUs12WtcisbUk7Eu079sKfIcPj3bQ';
 
 const TABS = ['AR', 'SMG', 'LMG', 'Sniper', 'Shotgun', 'DMR', 'Other', 'BO7'];
 const TIER_COLORS = {
@@ -8,12 +10,6 @@ const TIER_COLORS = {
   B: { bg: '#ffd700', text: '#000', label: 'B TIER' },
   C: { bg: '#555', text: '#fff', label: 'C TIER' },
 };
-function getTier(votes) {
-  if (votes >= 20) return 'S';
-  if (votes >= 10) return 'A';
-  if (votes >= 0) return 'B';
-  return 'C';
-}
 const WEAPON_SVGS = {
   AR: `<svg viewBox="0 0 300 60" width="100%" xmlns="http://www.w3.org/2000/svg"><g fill="#8b949e"><rect x="200" y="22" width="85" height="5" rx="1"/><rect x="268" y="17" width="4" height="10" rx="1"/><rect x="155" y="20" width="50" height="12" rx="2"/><rect x="90" y="18" width="70" height="14" rx="2"/><rect x="90" y="30" width="60" height="10" rx="2"/><rect x="110" y="40" width="14" height="28" rx="3"/><rect x="88" y="38" width="12" height="24" rx="3"/><rect x="30" y="22" width="62" height="12" rx="2"/><rect x="20" y="20" width="20" height="16" rx="3"/><rect x="95" y="14" width="55" height="5" rx="1"/><rect x="282" y="20" width="12" height="9" rx="1"/></g></svg>`,
   SMG: `<svg viewBox="0 0 260 60" width="100%" xmlns="http://www.w3.org/2000/svg"><g fill="#8b949e"><rect x="175" y="23" width="60" height="5" rx="1"/><rect x="232" y="21" width="10" height="9" rx="1"/><rect x="140" y="21" width="38" height="12" rx="2"/><rect x="95" y="19" width="52" height="14" rx="2"/><rect x="95" y="31" width="48" height="10" rx="2"/><rect x="112" y="40" width="12" height="32" rx="4"/><rect x="93" y="38" width="11" height="22" rx="3"/><rect x="30" y="22" width="66" height="10" rx="2"/><rect x="20" y="20" width="22" height="14" rx="3"/></g></svg>`,
@@ -25,53 +21,184 @@ const WEAPON_SVGS = {
   BO7: `<svg viewBox="0 0 310 62" width="100%" xmlns="http://www.w3.org/2000/svg"><g fill="#8b949e"><rect x="210" y="20" width="90" height="6" rx="1"/><rect x="297" y="16" width="14" height="14" rx="2"/><rect x="165" y="18" width="50" height="14" rx="1"/><rect x="100" y="16" width="70" height="16" rx="1"/><rect x="105" y="12" width="60" height="5" rx="1"/><rect x="100" y="30" width="68" height="10" rx="1"/><rect x="115" y="38" width="16" height="30" rx="2"/><rect x="98" y="38" width="13" height="24" rx="2"/><rect x="30" y="20" width="72" height="12" rx="1"/><rect x="18" y="18" width="24" height="16" rx="2"/></g></svg>`,
 };
 
-function WeaponCard({ item, index, activeTab }) {
-  const [votes, setVotes] = useState(item.loadouts.map(() => 0));
-  const [userVotes, setUserVotes] = useState(item.loadouts.map(() => null));
-  function handleVote(j, dir) {
-    if (userVotes[j] === dir) return;
-    const delta = dir === 'up' ? 1 : -1;
-    const undo = userVotes[j] !== null ? (userVotes[j] === 'up' ? -1 : 1) : 0;
-    setVotes(v => v.map((val, i) => i === j ? val + delta + undo : val));
-    setUserVotes(u => u.map((val, i) => i === j ? dir : val));
+function getTier(votes) {
+  if (votes >= 20) return 'S';
+  if (votes >= 10) return 'A';
+  if (votes >= 0) return 'B';
+  return 'C';
+}
+
+function getFingerprint() {
+  let fp = localStorage.getItem('md_fp');
+  if (!fp) { fp = Math.random().toString(36).slice(2); localStorage.setItem('md_fp', fp); }
+  return fp;
+}
+
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=representation', ...opts.headers },
+    ...opts,
+  });
+  if (!res.ok) return null;
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+function SubmitLoadout({ activeTab, onSubmitted }) {
+  const [open, setOpen] = useState(false);
+  const [weapon, setWeapon] = useState('');
+  const [attachments, setAttachments] = useState('');
+  const [note, setNote] = useState('');
+  const [author, setAuthor] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  async function submit() {
+    if (!weapon.trim() || !attachments.trim()) return;
+    setLoading(true);
+    const atts = attachments.split(',').map(a => a.trim()).filter(Boolean);
+    await sbFetch('loadouts', {
+      method: 'POST',
+      body: JSON.stringify({ weapon_name: weapon.trim(), class: activeTab, attachments: atts, note: note.trim(), submitted_by: author.trim() || 'Anonymous', votes: 0 }),
+    });
+    setLoading(false);
+    setSuccess(true);
+    setWeapon(''); setAttachments(''); setNote(''); setAuthor('');
+    setTimeout(() => { setSuccess(false); setOpen(false); onSubmitted(); }, 1500);
   }
+
+  const inp = { background: '#0d1117', border: '1px solid #30363d', borderRadius: '3px', color: '#e6f0ff', fontSize: '12px', padding: '8px 10px', fontFamily: "'Courier New', monospace", width: '100%' };
+
+  return (
+    <div style={{ marginBottom: '20px' }}>
+      <button onClick={() => setOpen(o => !o)} style={{ background: '#00e5ff22', border: '1px solid #00e5ff44', borderRadius: '3px', color: '#00e5ff', fontSize: '11px', padding: '8px 16px', cursor: 'pointer', fontFamily: "'Courier New', monospace", letterSpacing: '2px' }}>
+        + SUBMIT LOADOUT
+      </button>
+      {open && (
+        <div style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '4px', padding: '16px', marginTop: '10px', display: 'grid', gap: '10px' }}>
+          <input style={inp} placeholder="Weapon name (e.g. Kilo 141)" value={weapon} onChange={e => setWeapon(e.target.value)} />
+          <input style={inp} placeholder="Attachments (comma separated)" value={attachments} onChange={e => setAttachments(e.target.value)} />
+          <input style={inp} placeholder="Note (optional)" value={note} onChange={e => setNote(e.target.value)} />
+          <input style={inp} placeholder="Your name (optional)" value={author} onChange={e => setAuthor(e.target.value)} />
+          <button onClick={submit} disabled={loading || success} style={{ background: success ? '#00e5ff44' : '#00e5ff22', border: '1px solid #00e5ff', borderRadius: '3px', color: '#00e5ff', fontSize: '11px', padding: '8px 16px', cursor: 'pointer', fontFamily: "'Courier New', monospace", letterSpacing: '2px' }}>
+            {success ? '✓ SUBMITTED!' : loading ? 'SUBMITTING...' : 'SUBMIT'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CommentSection({ loadoutId }) {
+  const [comments, setComments] = useState([]);
+  const [input, setInput] = useState('');
+  const [name, setName] = useState('');
+  const [open, setOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  async function loadComments() {
+    const data = await sbFetch(`comments?loadout_id=eq.${loadoutId}&order=created_at.asc`);
+    if (data) setComments(data);
+    setLoaded(true);
+  }
+
+  function toggle() {
+    if (!open && !loaded) loadComments();
+    setOpen(o => !o);
+  }
+
+  async function submit() {
+    if (!input.trim()) return;
+    const data = await sbFetch('comments', {
+      method: 'POST',
+      body: JSON.stringify({ loadout_id: loadoutId, author: name.trim() || 'Anonymous', body: input.trim() }),
+    });
+    if (data) setComments(c => [...c, ...(Array.isArray(data) ? data : [data])]);
+    setInput('');
+  }
+
+  return (
+    <div style={{ marginTop: '12px', borderTop: '1px solid #21262d', paddingTop: '10px' }}>
+      <button onClick={toggle} style={{ background: 'none', border: 'none', color: '#484f58', fontSize: '11px', cursor: 'pointer', fontFamily: "'Courier New', monospace", letterSpacing: '1px', padding: 0 }}>
+        {open ? '// HIDE COMMENTS' : `// COMMENTS (${comments.length})`}
+      </button>
+      {open && (
+        <div style={{ marginTop: '10px' }}>
+          {comments.length === 0 && <div style={{ color: '#484f58', fontSize: '11px', fontFamily: "'Courier New', monospace", marginBottom: '8px' }}>// no comments yet — be first</div>}
+          {comments.map((c) => (
+            <div key={c.id} style={{ background: '#0d1117', border: '1px solid #21262d', borderRadius: '3px', padding: '8px 10px', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                <span style={{ color: '#00e5ff', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>{c.author}</span>
+                <span style={{ color: '#484f58', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>{new Date(c.created_at).toLocaleDateString()}</span>
+              </div>
+              <div style={{ color: '#c9d1d9', fontSize: '12px' }}>{c.body}</div>
+            </div>
+          ))}
+          <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="name" style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '3px', color: '#e6f0ff', fontSize: '11px', padding: '6px 8px', fontFamily: "'Courier New', monospace", width: '100px' }} />
+            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} placeholder="drop your thoughts..." style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '3px', color: '#e6f0ff', fontSize: '11px', padding: '6px 8px', fontFamily: "'Courier New', monospace", flex: 1, minWidth: '140px' }} />
+            <button onClick={submit} style={{ background: '#00e5ff22', border: '1px solid #00e5ff44', borderRadius: '3px', color: '#00e5ff', fontSize: '11px', padding: '6px 12px', cursor: 'pointer', fontFamily: "'Courier New', monospace" }}>POST</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LoadoutCard({ loadout, index, activeTab }) {
+  const [votes, setVotes] = useState(loadout.votes || 0);
+  const [userVote, setUserVote] = useState(null);
+
+  async function handleVote(dir) {
+    if (userVote === dir) return;
+    const fp = getFingerprint();
+    const delta = dir === 'up' ? 1 : -1;
+    const undo = userVote !== null ? (userVote === 'up' ? -1 : 1) : 0;
+    const newVotes = votes + delta + undo;
+    setVotes(newVotes);
+    setUserVote(dir);
+    if (userVote !== null) {
+      await sbFetch(`votes?loadout_id=eq.${loadout.id}&fingerprint=eq.${fp}`, { method: 'DELETE' });
+    }
+    await sbFetch('votes', { method: 'POST', body: JSON.stringify({ loadout_id: loadout.id, fingerprint: fp, direction: dir }) });
+    await sbFetch(`loadouts?id=eq.${loadout.id}`, { method: 'PATCH', body: JSON.stringify({ votes: newVotes }) });
+  }
+
+  const tier = getTier(votes);
+  const tierStyle = TIER_COLORS[tier];
+
   return (
     <div style={{ background: 'linear-gradient(135deg, #0d1117 0%, #161b22 100%)', border: '1px solid #30363d', borderRadius: '4px', overflow: 'hidden', animation: 'fadeSlideIn 0.4s ease both', animationDelay: `${index * 0.08}s` }}>
       <div style={{ background: 'linear-gradient(90deg, #1a1f2e 0%, #0d1117 100%)', borderBottom: '2px solid #00e5ff22', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '4px', height: '36px', background: 'linear-gradient(180deg, #00e5ff, #0077ff)', borderRadius: '2px', flexShrink: 0 }} />
           <div>
-            <div style={{ fontSize: '11px', color: '#00e5ff', letterSpacing: '3px', textTransform: 'uppercase', fontFamily: "'Courier New', monospace", marginBottom: '2px' }}>META LOADOUT</div>
-            <div style={{ fontSize: '17px', fontWeight: '700', color: '#e6f0ff', letterSpacing: '1px', fontFamily: "'Courier New', monospace" }}>{item.meta.split(' - ')[1] || item.meta}</div>
+            <div style={{ fontSize: '11px', color: '#00e5ff', letterSpacing: '3px', textTransform: 'uppercase', fontFamily: "'Courier New', monospace", marginBottom: '2px' }}>
+              {loadout.submitted_by || 'Anonymous'}
+            </div>
+            <div style={{ fontSize: '17px', fontWeight: '700', color: '#e6f0ff', letterSpacing: '1px', fontFamily: "'Courier New', monospace" }}>{loadout.weapon_name}</div>
           </div>
         </div>
         <div style={{ opacity: 0.6, flexShrink: 0, width: '150px' }} dangerouslySetInnerHTML={{ __html: WEAPON_SVGS[activeTab] || WEAPON_SVGS['Other'] }} />
       </div>
       <div style={{ padding: '12px 18px 18px' }}>
-        {item.loadouts.map((loadout, j) => {
-          const tier = getTier(votes[j]);
-          const tierStyle = TIER_COLORS[tier];
-          return (
-            <div key={loadout.weaponName} style={{ background: '#0a0e14', border: '1px solid #21262d', borderRadius: '3px', padding: '14px', marginTop: j > 0 ? '10px' : '0', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', top: 0, right: 0, background: tierStyle.bg, color: tierStyle.text, fontSize: '10px', fontWeight: '900', letterSpacing: '2px', padding: '3px 10px', fontFamily: "'Courier New', monospace" }}>{tierStyle.label}</div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '15px', fontWeight: '700', color: '#fff', marginBottom: '8px', fontFamily: "'Courier New', monospace" }}>{loadout.weaponName}</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '8px' }}>
-                    {loadout.attachments.map(att => (<span key={att} style={{ background: '#161b22', border: '1px solid #30363d', color: '#8b949e', fontSize: '10px', padding: '2px 8px', borderRadius: '2px', fontFamily: "'Courier New', monospace" }}>{att}</span>))}
-                  </div>
-                  {loadout.note && <div style={{ fontSize: '11px', color: '#484f58', fontStyle: 'italic' }}>// {loadout.note}</div>}
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                  <button onClick={() => handleVote(j, 'up')} style={{ width: '32px', height: '32px', background: userVotes[j] === 'up' ? '#00e5ff22' : '#161b22', border: userVotes[j] === 'up' ? '1px solid #00e5ff' : '1px solid #30363d', borderRadius: '3px', color: userVotes[j] === 'up' ? '#00e5ff' : '#8b949e', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▲</button>
-                  <div style={{ fontSize: '13px', fontWeight: '700', color: votes[j] >= 20 ? '#ff4444' : votes[j] >= 10 ? '#ff8c00' : '#e6f0ff', fontFamily: "'Courier New', monospace", minWidth: '24px', textAlign: 'center' }}>{votes[j]}</div>
-                  <button onClick={() => handleVote(j, 'down')} style={{ width: '32px', height: '32px', background: userVotes[j] === 'down' ? '#ff444422' : '#161b22', border: userVotes[j] === 'down' ? '1px solid #ff4444' : '1px solid #30363d', borderRadius: '3px', color: userVotes[j] === 'down' ? '#ff4444' : '#8b949e', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▼</button>
-                </div>
+        <div style={{ background: '#0a0e14', border: '1px solid #21262d', borderRadius: '3px', padding: '14px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, right: 0, background: tierStyle.bg, color: tierStyle.text, fontSize: '10px', fontWeight: '900', letterSpacing: '2px', padding: '3px 10px', fontFamily: "'Courier New', monospace" }}>{tierStyle.label}</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '8px' }}>
+                {loadout.attachments.map(att => (<span key={att} style={{ background: '#161b22', border: '1px solid #30363d', color: '#8b949e', fontSize: '10px', padding: '2px 8px', borderRadius: '2px', fontFamily: "'Courier New', monospace" }}>{att}</span>))}
               </div>
+              {loadout.note && <div style={{ fontSize: '11px', color: '#484f58', fontStyle: 'italic' }}>// {loadout.note}</div>}
+              <CommentSection loadoutId={loadout.id} />
             </div>
-          );
-        })}
-        {item.loadouts.length === 0 && <div style={{ color: '#484f58', fontSize: '12px', fontFamily: "'Courier New', monospace", padding: '10px 0' }}>// NO LOADOUTS SUBMITTED YET</div>}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+              <button onClick={() => handleVote('up')} style={{ width: '32px', height: '32px', background: userVote === 'up' ? '#00e5ff22' : '#161b22', border: userVote === 'up' ? '1px solid #00e5ff' : '1px solid #30363d', borderRadius: '3px', color: userVote === 'up' ? '#00e5ff' : '#8b949e', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▲</button>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: votes >= 20 ? '#ff4444' : votes >= 10 ? '#ff8c00' : '#e6f0ff', fontFamily: "'Courier New', monospace", minWidth: '24px', textAlign: 'center' }}>{votes}</div>
+              <button onClick={() => handleVote('down')} style={{ width: '32px', height: '32px', background: userVote === 'down' ? '#ff444422' : '#161b22', border: userVote === 'down' ? '1px solid #ff4444' : '1px solid #30363d', borderRadius: '3px', color: userVote === 'down' ? '#ff4444' : '#8b949e', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▼</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -79,6 +206,18 @@ function WeaponCard({ item, index, activeTab }) {
 
 export default function Home() {
   const [active, setActive] = useState('AR');
+  const [loadouts, setLoadouts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  async function fetchLoadouts() {
+    setLoading(true);
+    const data = await sbFetch(`loadouts?class=eq.${active}&order=votes.desc`);
+    setLoadouts(data || []);
+    setLoading(false);
+  }
+
+  useEffect(() => { fetchLoadouts(); }, [active]);
+
   return (
     <>
       <style>{`
@@ -87,6 +226,7 @@ export default function Home() {
         body { background: #080b10; }
         @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         button:hover { filter: brightness(1.3); }
+        input:focus { outline: 1px solid #00e5ff44; }
       `}</style>
       <div style={{ background: '#080b10', minHeight: '100vh', color: '#e6f0ff' }}>
         <header style={{ background: 'linear-gradient(180deg, #0d1117 0%, #080b10 100%)', borderBottom: '1px solid #21262d', padding: '0 24px', position: 'sticky', top: 0, zIndex: 100 }}>
@@ -101,22 +241,14 @@ export default function Home() {
           </div>
         </header>
         <main style={{ maxWidth: '900px', margin: '0 auto', padding: '24px' }}>
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span style={{ fontSize: '10px', color: '#484f58', fontFamily: "'Courier New', monospace", letterSpacing: '1px' }}>TIER KEY:</span>
-            {Object.entries(TIER_COLORS).map(([key, val]) => (
-              <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <div style={{ width: '20px', height: '20px', background: val.bg, borderRadius: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: '900', color: val.text, fontFamily: "'Courier New', monospace" }}>{key}</div>
-                <span style={{ fontSize: '10px', color: '#484f58', fontFamily: "'Courier New', monospace" }}>{key === 'S' ? '20+ votes' : key === 'A' ? '10+ votes' : key === 'B' ? '0+ votes' : 'negative'}</span>
-              </div>
-            ))}
-          </div>
           <div style={{ display: 'flex', gap: '0', marginBottom: '24px', flexWrap: 'wrap', borderBottom: '1px solid #21262d' }}>
             {TABS.map(tab => (<button key={tab} onClick={() => setActive(tab)} style={{ padding: '10px 18px', background: 'transparent', color: active === tab ? '#00e5ff' : '#8b949e', border: 'none', borderBottom: active === tab ? '2px solid #00e5ff' : '2px solid transparent', cursor: 'pointer', fontSize: '12px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', fontFamily: 'Rajdhani, sans-serif', transition: 'all 0.15s', marginBottom: '-1px' }}>{tab}</button>))}
           </div>
+          <SubmitLoadout activeTab={active} onSubmitted={fetchLoadouts} />
           <div style={{ display: 'grid', gap: '14px' }}>
-            {seedData[active] && seedData[active].length > 0
-              ? seedData[active].map((item, i) => <WeaponCard key={item.meta} item={item} index={i} activeTab={active} />)
-              : <div style={{ textAlign: 'center', padding: '60px 20px', color: '#484f58', fontFamily: "'Courier New', monospace", fontSize: '13px', letterSpacing: '2px', border: '1px dashed #21262d', borderRadius: '4px' }}>// NO META LOADOUTS FOR THIS CLASS YET</div>}
+            {loading && <div style={{ color: '#484f58', fontFamily: "'Courier New', monospace", fontSize: '12px', letterSpacing: '2px', padding: '40px', textAlign: 'center' }}>// LOADING LOADOUTS...</div>}
+            {!loading && loadouts.length === 0 && <div style={{ textAlign: 'center', padding: '60px 20px', color: '#484f58', fontFamily: "'Courier New', monospace", fontSize: '13px', letterSpacing: '2px', border: '1px dashed #21262d', borderRadius: '4px' }}>// NO LOADOUTS YET — BE THE FIRST TO SUBMIT</div>}
+            {!loading && loadouts.map((l, i) => <LoadoutCard key={l.id} loadout={l} index={i} activeTab={active} />)}
           </div>
         </main>
       </div>
