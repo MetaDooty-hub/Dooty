@@ -67,20 +67,20 @@ function SubmitLoadout({ activeTab, onSubmitted }) {
     setTimeout(() => { setSuccess(false); setOpen(false); onSubmitted(); }, 1500);
   }
 
-  const inp = { background: '#0d1117', border: '1px solid #30363d', borderRadius: '3px', color: '#e6f0ff', fontSize: '12px', padding: '8px 10px', fontFamily: "'Courier New', monospace", width: '100%' };
+  const inp = { background: '#0d1117', border: '1px solid #30363d', borderRadius: '3px', color: '#e6f0ff', fontSize: '16px', padding: '12px', fontFamily: "'Courier New', monospace", width: '100%' };
 
   return (
-    <div style={{ marginBottom: '20px' }}>
-      <button onClick={() => setOpen(o => !o)} style={{ background: '#00e5ff22', border: '1px solid #00e5ff44', borderRadius: '3px', color: '#00e5ff', fontSize: '11px', padding: '8px 16px', cursor: 'pointer', fontFamily: "'Courier New', monospace", letterSpacing: '2px' }}>
-        + SUBMIT LOADOUT
+    <div style={{ marginBottom: '16px' }}>
+      <button onClick={() => setOpen(o => !o)} style={{ background: '#00e5ff22', border: '1px solid #00e5ff44', borderRadius: '3px', color: '#00e5ff', fontSize: '12px', padding: '12px 20px', cursor: 'pointer', fontFamily: "'Courier New', monospace", letterSpacing: '2px', width: '100%' }}>
+        {open ? '✕ CANCEL' : '+ SUBMIT YOUR LOADOUT'}
       </button>
       {open && (
-        <div style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '4px', padding: '16px', marginTop: '10px', display: 'grid', gap: '10px' }}>
+        <div style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '4px', padding: '16px', marginTop: '8px', display: 'grid', gap: '10px' }}>
           <input style={inp} placeholder="Weapon name (e.g. Kilo 141)" value={weapon} onChange={e => setWeapon(e.target.value)} />
           <input style={inp} placeholder="Attachments (comma separated)" value={attachments} onChange={e => setAttachments(e.target.value)} />
           <input style={inp} placeholder="Note (optional)" value={note} onChange={e => setNote(e.target.value)} />
           <input style={inp} placeholder="Your name (optional)" value={author} onChange={e => setAuthor(e.target.value)} />
-          <button onClick={submit} disabled={loading || success} style={{ background: success ? '#00e5ff44' : '#00e5ff22', border: '1px solid #00e5ff', borderRadius: '3px', color: '#00e5ff', fontSize: '11px', padding: '8px 16px', cursor: 'pointer', fontFamily: "'Courier New', monospace", letterSpacing: '2px' }}>
+          <button onClick={submit} disabled={loading || success} style={{ background: success ? '#00e5ff44' : '#00e5ff22', border: '1px solid #00e5ff', borderRadius: '3px', color: '#00e5ff', fontSize: '14px', padding: '14px', cursor: 'pointer', fontFamily: "'Courier New', monospace", letterSpacing: '2px', width: '100%' }}>
             {success ? '✓ SUBMITTED!' : loading ? 'SUBMITTING...' : 'SUBMIT'}
           </button>
         </div>
@@ -119,25 +119,25 @@ function CommentSection({ loadoutId }) {
 
   return (
     <div style={{ marginTop: '12px', borderTop: '1px solid #21262d', paddingTop: '10px' }}>
-      <button onClick={toggle} style={{ background: 'none', border: 'none', color: '#484f58', fontSize: '11px', cursor: 'pointer', fontFamily: "'Courier New', monospace", letterSpacing: '1px', padding: 0 }}>
+      <button onClick={toggle} style={{ background: 'none', border: 'none', color: '#484f58', fontSize: '12px', cursor: 'pointer', fontFamily: "'Courier New', monospace", letterSpacing: '1px', padding: '4px 0', minHeight: '44px' }}>
         {open ? '// HIDE COMMENTS' : `// COMMENTS (${comments.length})`}
       </button>
       {open && (
         <div style={{ marginTop: '10px' }}>
-          {comments.length === 0 && <div style={{ color: '#484f58', fontSize: '11px', fontFamily: "'Courier New', monospace", marginBottom: '8px' }}>// no comments yet — be first</div>}
+          {comments.length === 0 && <div style={{ color: '#484f58', fontSize: '12px', fontFamily: "'Courier New', monospace", marginBottom: '8px' }}>// no comments yet — be first</div>}
           {comments.map((c) => (
-            <div key={c.id} style={{ background: '#0d1117', border: '1px solid #21262d', borderRadius: '3px', padding: '8px 10px', marginBottom: '6px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                <span style={{ color: '#00e5ff', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>{c.author}</span>
-                <span style={{ color: '#484f58', fontSize: '10px', fontFamily: "'Courier New', monospace" }}>{new Date(c.created_at).toLocaleDateString()}</span>
+            <div key={c.id} style={{ background: '#0d1117', border: '1px solid #21262d', borderRadius: '3px', padding: '10px', marginBottom: '6px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span style={{ color: '#00e5ff', fontSize: '11px', fontFamily: "'Courier New', monospace" }}>{c.author}</span>
+                <span style={{ color: '#484f58', fontSize: '11px', fontFamily: "'Courier New', monospace" }}>{new Date(c.created_at).toLocaleDateString()}</span>
               </div>
-              <div style={{ color: '#c9d1d9', fontSize: '12px' }}>{c.body}</div>
+              <div style={{ color: '#c9d1d9', fontSize: '13px', lineHeight: '1.4' }}>{c.body}</div>
             </div>
           ))}
-          <div style={{ display: 'flex', gap: '6px', marginTop: '8px', flexWrap: 'wrap' }}>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="name" style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '3px', color: '#e6f0ff', fontSize: '11px', padding: '6px 8px', fontFamily: "'Courier New', monospace", width: '100px' }} />
-            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} placeholder="drop your thoughts..." style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '3px', color: '#e6f0ff', fontSize: '11px', padding: '6px 8px', fontFamily: "'Courier New', monospace", flex: 1, minWidth: '140px' }} />
-            <button onClick={submit} style={{ background: '#00e5ff22', border: '1px solid #00e5ff44', borderRadius: '3px', color: '#00e5ff', fontSize: '11px', padding: '6px 12px', cursor: 'pointer', fontFamily: "'Courier New', monospace" }}>POST</button>
+          <div style={{ display: 'grid', gap: '8px', marginTop: '10px' }}>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="your name (optional)" style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '3px', color: '#e6f0ff', fontSize: '16px', padding: '10px', fontFamily: "'Courier New', monospace', width: '100%'" }} />
+            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} placeholder="drop your thoughts..." style={{ background: '#0d1117', border: '1px solid #30363d', borderRadius: '3px', color: '#e6f0ff', fontSize: '16px', padding: '10px', fontFamily: "'Courier New', monospace", width: '100%' }} />
+            <button onClick={submit} style={{ background: '#00e5ff22', border: '1px solid #00e5ff44', borderRadius: '3px', color: '#00e5ff', fontSize: '13px', padding: '12px', cursor: 'pointer', fontFamily: "'Courier New', monospace", width: '100%' }}>POST COMMENT</button>
           </div>
         </div>
       )}
@@ -169,33 +169,34 @@ function LoadoutCard({ loadout, index, activeTab }) {
 
   return (
     <div style={{ background: 'linear-gradient(135deg, #0d1117 0%, #161b22 100%)', border: '1px solid #30363d', borderRadius: '4px', overflow: 'hidden', animation: 'fadeSlideIn 0.4s ease both', animationDelay: `${index * 0.08}s` }}>
-      <div style={{ background: 'linear-gradient(90deg, #1a1f2e 0%, #0d1117 100%)', borderBottom: '2px solid #00e5ff22', padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '4px', height: '36px', background: 'linear-gradient(180deg, #00e5ff, #0077ff)', borderRadius: '2px', flexShrink: 0 }} />
-          <div>
-            <div style={{ fontSize: '11px', color: '#00e5ff', letterSpacing: '3px', textTransform: 'uppercase', fontFamily: "'Courier New', monospace", marginBottom: '2px' }}>
-              {loadout.submitted_by || 'Anonymous'}
+      <div style={{ background: 'linear-gradient(90deg, #1a1f2e 0%, #0d1117 100%)', borderBottom: '2px solid #00e5ff22', padding: '12px 14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+            <div style={{ width: '4px', height: '32px', background: 'linear-gradient(180deg, #00e5ff, #0077ff)', borderRadius: '2px', flexShrink: 0 }} />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: '10px', color: '#00e5ff', letterSpacing: '2px', textTransform: 'uppercase', fontFamily: "'Courier New', monospace", marginBottom: '2px' }}>{loadout.submitted_by || 'Anonymous'}</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#e6f0ff', fontFamily: "'Courier New', monospace", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{loadout.weapon_name}</div>
             </div>
-            <div style={{ fontSize: '17px', fontWeight: '700', color: '#e6f0ff', letterSpacing: '1px', fontFamily: "'Courier New', monospace" }}>{loadout.weapon_name}</div>
           </div>
+          <div style={{ opacity: 0.5, flexShrink: 0, width: '100px', display: 'none' }} className="desktop-only" dangerouslySetInnerHTML={{ __html: WEAPON_SVGS[activeTab] || WEAPON_SVGS['Other'] }} />
         </div>
-        <div style={{ opacity: 0.6, flexShrink: 0, width: '150px' }} dangerouslySetInnerHTML={{ __html: WEAPON_SVGS[activeTab] || WEAPON_SVGS['Other'] }} />
+        <div style={{ marginTop: '8px', opacity: 0.5 }} dangerouslySetInnerHTML={{ __html: WEAPON_SVGS[activeTab] || WEAPON_SVGS['Other'] }} />
       </div>
-      <div style={{ padding: '12px 18px 18px' }}>
-        <div style={{ background: '#0a0e14', border: '1px solid #21262d', borderRadius: '3px', padding: '14px', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: 0, right: 0, background: tierStyle.bg, color: tierStyle.text, fontSize: '10px', fontWeight: '900', letterSpacing: '2px', padding: '3px 10px', fontFamily: "'Courier New', monospace" }}>{tierStyle.label}</div>
+      <div style={{ padding: '12px 14px' }}>
+        <div style={{ background: '#0a0e14', border: '1px solid #21262d', borderRadius: '3px', padding: '12px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, right: 0, background: tierStyle.bg, color: tierStyle.text, fontSize: '9px', fontWeight: '900', letterSpacing: '2px', padding: '3px 8px', fontFamily: "'Courier New', monospace" }}>{tierStyle.label}</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '8px' }}>
-                {loadout.attachments.map(att => (<span key={att} style={{ background: '#161b22', border: '1px solid #30363d', color: '#8b949e', fontSize: '10px', padding: '2px 8px', borderRadius: '2px', fontFamily: "'Courier New', monospace" }}>{att}</span>))}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '8px', paddingTop: '4px' }}>
+                {loadout.attachments.map(att => (<span key={att} style={{ background: '#161b22', border: '1px solid #30363d', color: '#8b949e', fontSize: '10px', padding: '3px 8px', borderRadius: '2px', fontFamily: "'Courier New', monospace" }}>{att}</span>))}
               </div>
-              {loadout.note && <div style={{ fontSize: '11px', color: '#484f58', fontStyle: 'italic' }}>// {loadout.note}</div>}
+              {loadout.note && <div style={{ fontSize: '11px', color: '#484f58', fontStyle: 'italic', marginBottom: '4px' }}>// {loadout.note}</div>}
               <CommentSection loadoutId={loadout.id} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-              <button onClick={() => handleVote('up')} style={{ width: '32px', height: '32px', background: userVote === 'up' ? '#00e5ff22' : '#161b22', border: userVote === 'up' ? '1px solid #00e5ff' : '1px solid #30363d', borderRadius: '3px', color: userVote === 'up' ? '#00e5ff' : '#8b949e', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▲</button>
-              <div style={{ fontSize: '13px', fontWeight: '700', color: votes >= 20 ? '#ff4444' : votes >= 10 ? '#ff8c00' : '#e6f0ff', fontFamily: "'Courier New', monospace", minWidth: '24px', textAlign: 'center' }}>{votes}</div>
-              <button onClick={() => handleVote('down')} style={{ width: '32px', height: '32px', background: userVote === 'down' ? '#ff444422' : '#161b22', border: userVote === 'down' ? '1px solid #ff4444' : '1px solid #30363d', borderRadius: '3px', color: userVote === 'down' ? '#ff4444' : '#8b949e', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▼</button>
+              <button onClick={() => handleVote('up')} style={{ width: '44px', height: '44px', background: userVote === 'up' ? '#00e5ff22' : '#161b22', border: userVote === 'up' ? '1px solid #00e5ff' : '1px solid #30363d', borderRadius: '3px', color: userVote === 'up' ? '#00e5ff' : '#8b949e', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▲</button>
+              <div style={{ fontSize: '14px', fontWeight: '700', color: votes >= 20 ? '#ff4444' : votes >= 10 ? '#ff8c00' : '#e6f0ff', fontFamily: "'Courier New', monospace", minWidth: '28px', textAlign: 'center' }}>{votes}</div>
+              <button onClick={() => handleVote('down')} style={{ width: '44px', height: '44px', background: userVote === 'down' ? '#ff444422' : '#161b22', border: userVote === 'down' ? '1px solid #ff4444' : '1px solid #30363d', borderRadius: '3px', color: userVote === 'down' ? '#ff4444' : '#8b949e', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>▼</button>
             </div>
           </div>
         </div>
@@ -224,30 +225,44 @@ export default function Home() {
         @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #080b10; }
+        html { -webkit-text-size-adjust: 100%; }
         @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
         button:hover { filter: brightness(1.3); }
+        input, button { -webkit-appearance: none; }
         input:focus { outline: 1px solid #00e5ff44; }
+        .tab-scroll { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; border-bottom: 1px solid #21262d; }
+        .tab-scroll::-webkit-scrollbar { display: none; }
+        .tab-btn { flex-shrink: 0; padding: 12px 16px; background: transparent; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; font-family: Rajdhani, sans-serif; transition: all 0.15s; margin-bottom: -1px; white-space: nowrap; }
+        .tab-btn.active { color: #00e5ff; border-bottom-color: #00e5ff; }
+        .tab-btn:not(.active) { color: #8b949e; }
       `}</style>
       <div style={{ background: '#080b10', minHeight: '100vh', color: '#e6f0ff' }}>
-        <header style={{ background: 'linear-gradient(180deg, #0d1117 0%, #080b10 100%)', borderBottom: '1px solid #21262d', padding: '0 24px', position: 'sticky', top: 0, zIndex: 100 }}>
-          <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '60px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '3px', height: '28px', background: 'linear-gradient(180deg, #00e5ff, #0055ff)' }} />
-              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '22px', fontWeight: '700', letterSpacing: '3px', color: '#fff', textTransform: 'uppercase' }}>META</span>
-              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '22px', fontWeight: '700', letterSpacing: '3px', color: '#00e5ff', textTransform: 'uppercase' }}>DOOTY</span>
-              <div style={{ background: '#00e5ff22', border: '1px solid #00e5ff44', color: '#00e5ff', fontSize: '9px', letterSpacing: '2px', padding: '2px 8px', fontFamily: "'Courier New', monospace" }}>MVP</div>
+        <header style={{ background: 'linear-gradient(180deg, #0d1117 0%, #080b10 100%)', borderBottom: '1px solid #21262d', padding: '0 16px', position: 'sticky', top: 0, zIndex: 100 }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '54px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ width: '3px', height: '26px', background: 'linear-gradient(180deg, #00e5ff, #0055ff)' }} />
+              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '20px', fontWeight: '700', letterSpacing: '3px', color: '#fff', textTransform: 'uppercase' }}>META</span>
+              <span style={{ fontFamily: 'Rajdhani, sans-serif', fontSize: '20px', fontWeight: '700', letterSpacing: '3px', color: '#00e5ff', textTransform: 'uppercase' }}>DOOTY</span>
+              <div style={{ background: '#00e5ff22', border: '1px solid #00e5ff44', color: '#00e5ff', fontSize: '8px', letterSpacing: '2px', padding: '2px 6px', fontFamily: "'Courier New', monospace" }}>MVP</div>
             </div>
-            <div style={{ fontSize: '10px', color: '#484f58', letterSpacing: '2px', fontFamily: "'Courier New', monospace" }}>COMMUNITY LOADOUTS</div>
           </div>
         </header>
-        <main style={{ maxWidth: '900px', margin: '0 auto', padding: '24px' }}>
-          <div style={{ display: 'flex', gap: '0', marginBottom: '24px', flexWrap: 'wrap', borderBottom: '1px solid #21262d' }}>
-            {TABS.map(tab => (<button key={tab} onClick={() => setActive(tab)} style={{ padding: '10px 18px', background: 'transparent', color: active === tab ? '#00e5ff' : '#8b949e', border: 'none', borderBottom: active === tab ? '2px solid #00e5ff' : '2px solid transparent', cursor: 'pointer', fontSize: '12px', fontWeight: '700', letterSpacing: '2px', textTransform: 'uppercase', fontFamily: 'Rajdhani, sans-serif', transition: 'all 0.15s', marginBottom: '-1px' }}>{tab}</button>))}
-          </div>
+
+        <div className="tab-scroll" style={{ padding: '0 16px', maxWidth: '900px', margin: '0 auto' }}>
+          {TABS.map(tab => (
+            <button key={tab} onClick={() => setActive(tab)} className={`tab-btn${active === tab ? ' active' : ''}`}>{tab}</button>
+          ))}
+        </div>
+
+        <main style={{ maxWidth: '900px', margin: '0 auto', padding: '16px' }}>
           <SubmitLoadout activeTab={active} onSubmitted={fetchLoadouts} />
-          <div style={{ display: 'grid', gap: '14px' }}>
+          <div style={{ display: 'grid', gap: '12px' }}>
             {loading && <div style={{ color: '#484f58', fontFamily: "'Courier New', monospace", fontSize: '12px', letterSpacing: '2px', padding: '40px', textAlign: 'center' }}>// LOADING LOADOUTS...</div>}
-            {!loading && loadouts.length === 0 && <div style={{ textAlign: 'center', padding: '60px 20px', color: '#484f58', fontFamily: "'Courier New', monospace", fontSize: '13px', letterSpacing: '2px', border: '1px dashed #21262d', borderRadius: '4px' }}>// NO LOADOUTS YET — BE THE FIRST TO SUBMIT</div>}
+            {!loading && loadouts.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '60px 20px', color: '#484f58', fontFamily: "'Courier New', monospace", fontSize: '13px', letterSpacing: '2px', border: '1px dashed #21262d', borderRadius: '4px' }}>
+                // NO LOADOUTS YET — BE THE FIRST TO SUBMIT
+              </div>
+            )}
             {!loading && loadouts.map((l, i) => <LoadoutCard key={l.id} loadout={l} index={i} activeTab={active} />)}
           </div>
         </main>
