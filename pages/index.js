@@ -12,6 +12,18 @@ const GAME_BADGE = {
   Warzone: { label: 'WZ',  color: '#00e5ff', bg: '#00e5ff22' },
 };
 
+// ── FIRE MODS (BO7 official attachment slot) ──────────────────────────────────
+const FIRE_MODS = [
+  'None',
+  'Rapid Fire',
+  'Enhanced Cycle System',
+  'MFS Snap Trigger',
+  'FMJ Ammo',
+  'High-Velocity Ammo',
+  'Incendiary Ammo',
+  'MFS 5.56 NATO FMJ',
+];
+
 const ATTACHMENT_SLOTS = {
   AR: {
     Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider','Muzzle Brake','Sonic Suppressor','BO7 Flash Hider','BO7 Compensator','BO7 Muzzle Brake','BO7 Suppressor','MFS Motion Suppressor'],
@@ -22,7 +34,7 @@ const ATTACHMENT_SLOTS = {
     Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV','Canted Vibro-Dot 7','BO7 Laser Sight','BO7 Tac Laser','MFS Motion Strike Laser'],
     'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','BRT Grip Tape','D15 Combat Grip','BO7 Grip Tape','BO7 Combat Grip','MFS Ergonomic Grip'],
     Stock: ['None','No Stock','Demo Cleanshot Stock','FT Tac-Elite Stock','BO7 Heavy Stock','BO7 Light Stock','BO7 Folding Stock','MFS Tactical Stock','MFS Striker Tactical Stock'],
-    'Fire Mode': ['None','Full Auto','Semi Auto','Burst','Single','3-Round Burst','4-Round Burst'],
+    'Fire Mods': FIRE_MODS,
   },
   SMG: {
     Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider','BO7 Flash Hider','BO7 Compensator','BO7 Suppressor','MFS Motion Suppressor'],
@@ -33,7 +45,7 @@ const ATTACHMENT_SLOTS = {
     Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV','BO7 Laser Sight','BO7 Tac Laser','MFS Precision Laser'],
     'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','D15 Combat Grip','BO7 Grip Tape','BO7 Combat Grip'],
     Stock: ['None','No Stock','Folding Stock','Collapsed Stock','BO7 Heavy Stock','BO7 Light Stock','BO7 Folding Stock','MFS Tactical Stock'],
-    'Fire Mode': ['None','Full Auto','Semi Auto','Burst','3-Round Burst'],
+    'Fire Mods': FIRE_MODS,
   },
   LMG: {
     Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider','BO7 Flash Hider','BO7 Suppressor','MFS Motion Suppressor'],
@@ -44,7 +56,7 @@ const ATTACHMENT_SLOTS = {
     Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV','MFS Motion Strike Laser','BO7 Tac Laser'],
     'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','D15 Combat Grip','BO7 Grip Tape'],
     Stock: ['None','LM Stockless Mod','Demo Cleanshot Stock','BO7 Heavy Stock','BO7 Light Stock','MFS Tactical Stock'],
-    'Fire Mode': ['None','Full Auto','Semi Auto','Dual Fire Mode (Sokol 545)'],
+    'Fire Mods': FIRE_MODS,
   },
   Sniper: {
     Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','BO7 Flash Hider','BO7 Suppressor','MFS Motion Suppressor'],
@@ -55,7 +67,7 @@ const ATTACHMENT_SLOTS = {
     Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV','BO7 Laser Sight','MFS Precision Laser'],
     'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','BO7 Grip Tape','MFS Ergonomic Grip'],
     Stock: ['None','FSS Merc Stock','FT Tac-Elite Stock','BO7 Heavy Stock','BO7 Light Stock','MFS Tactical Stock'],
-    'Fire Mode': ['None','Bolt Action','Semi Auto','3-Round Burst (XR-3 Ion)'],
+    'Fire Mods': FIRE_MODS,
   },
   Shotgun: {
     Muzzle: ['None','Shadowstrike Suppressor','Compensator','Choke','Full Choke','BO7 Compensator','BO7 Suppressor'],
@@ -66,7 +78,7 @@ const ATTACHMENT_SLOTS = {
     Laser: ['None','FSS OLE-V Laser','Canted Vibro-Dot 7','BO7 Laser Sight','BO7 Tac Laser'],
     'Rear Grip': ['None','Commando Grip','D15 Combat Grip','BO7 Grip Tape'],
     Stock: ['None','No Stock','Stockless Pistol Grip','BO7 Heavy Stock','BO7 Light Stock'],
-    'Fire Mode': ['None','Pump Action','Semi Auto','Full Auto','Double Barrel (Echo 12)'],
+    'Fire Mods': FIRE_MODS,
   },
   DMR: {
     Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider','BO7 Flash Hider','BO7 Suppressor','MFS Motion Suppressor'],
@@ -77,7 +89,7 @@ const ATTACHMENT_SLOTS = {
     Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV','BO7 Laser Sight','BO7 Tac Laser'],
     'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','BO7 Grip Tape','MFS Ergonomic Grip'],
     Stock: ['None','No Stock','FT Tac-Elite Stock','BO7 Heavy Stock','BO7 Light Stock','MFS Striker Tactical Stock'],
-    'Fire Mode': ['None','Semi Auto','Burst','Full Auto','4-Round Burst (M8A1)','Penta Burst (Swordfish A1)'],
+    'Fire Mods': FIRE_MODS,
   },
   Other: {
     Muzzle: ['None','Suppressor','Compensator','Flash Hider'],
@@ -88,21 +100,21 @@ const ATTACHMENT_SLOTS = {
     Laser: ['None','Laser Sight','BO7 Tac Laser'],
     'Rear Grip': ['None','Grip Tape'],
     Stock: ['None','No Stock'],
-    'Fire Mode': ['None','Full Auto','Semi Auto','Burst'],
+    'Fire Mods': FIRE_MODS,
   },
 };
 
 const SLOT_GROUPS = {
   core: ['Muzzle','Barrel','Optic','Underbarrel','Comb','Magazine'],
   handle: ['Laser','Rear Grip','Stock'],
-  mods: ['Fire Mode'],
+  mods: ['Fire Mods'],
 };
 
 const SLOT_COLORS = {
   Muzzle:'#00e5ff',Barrel:'#00e5ff',Optic:'#00e5ff',
   Underbarrel:'#00e5ff',Comb:'#00e5ff',Magazine:'#00e5ff',
   Laser:'#c084fc','Rear Grip':'#c084fc',Stock:'#c084fc',
-  'Fire Mode':'#ff8c00',
+  'Fire Mods':'#ff8c00',
 };
 
 const TIER_COLORS = {
@@ -124,14 +136,14 @@ function drawGunSVG(cls,atts={}){
   const las=atts.Laser&&atts.Laser!=='None';
   const grip=atts['Rear Grip']&&atts['Rear Grip']!=='None';
   const stk=atts.Stock&&atts.Stock!=='None';
-  const fmode=atts['Fire Mode']&&atts['Fire Mode']!=='None';
+  const fmod=atts['Fire Mods']&&atts['Fire Mods']!=='None';
   const supp=muz&&(atts.Muzzle||'').toLowerCase().includes('suppressor');
   const bigOpt=opt&&!!(atts.Optic||'').match(/4x|6x|10x|eagleseye|thermal|eagle|victus|forge|schlager/i);
   const bigMag=mag&&!!(atts.Magazine||'').match(/60|100|drum|belt|large/i);
   const noStk=stk&&!!(atts.Stock||'').match(/no stock|stockless|pistol grip/i);
   const foldStk=stk&&!!(atts.Stock||'').match(/fold|collapse/i);
   const fns={AR:drawAR,SMG:drawSMG,LMG:drawLMG,Sniper:drawSniper,Shotgun:drawShotgun,DMR:drawDMR};
-  return (fns[cls]||drawAR)(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,bigOpt,bigMag);
+  return (fns[cls]||drawAR)(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmod,supp,bigOpt,bigMag);
 }
 
 function gunViewBox(cls){
@@ -144,11 +156,11 @@ function gunViewBox(cls){
   return '0 0 540 68';
 }
 
-function drawSMG(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,bigOpt,bigMag){
+function drawSMG(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmod,supp,bigOpt,bigMag){
   const bL=bar?52:36,mL=muz?(supp?26:12):0;let s='';
   if(!noStk){s+=`<rect x="6" y="20" width="44" height="4" rx="2" fill="${stk?GA:GC}"/><rect x="6" y="36" width="44" height="4" rx="2" fill="${stk?GA:GC}"/>`;s+=`<rect x="4" y="20" width="4" height="20" rx="2" fill="${GD}"/><rect x="18" y="20" width="2" height="20" rx="1" fill="${GD}"/>`;s+=`<circle cx="50" cy="22" r="3" fill="${GL}"/><circle cx="50" cy="22" r="1.5" fill="${GD}"/>`;s+=`<circle cx="50" cy="38" r="3" fill="${GL}"/><circle cx="50" cy="38" r="1.5" fill="${GD}"/>`;}
   s+=`<rect x="54" y="20" width="54" height="10" rx="2" fill="${GC}"/><rect x="56" y="21" width="50" height="5" rx="1" fill="${GL}"/>`;
-  if(fmode)s+=`<rect x="58" y="25" width="5" height="3" rx="1" fill="${GO}"/>`;
+  if(fmod)s+=`<rect x="58" y="25" width="5" height="3" rx="1" fill="${GO}"/>`;
   s+=`<path d="M90,26 Q90,42 82,44 Q76,45 72,39 L70,33" stroke="${GD}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
   s+=`<path d="M96,24 L106,24 L110,44 Q110,51 104,52 L94,52 Q88,52 86,45 L88,24 Z" fill="${grip?GA:GD}"/>`;
   for(let i=0;i<3;i++)s+=`<rect x="90" y="${30+i*4}" width="12" height="1.5" fill="${GD}" opacity="0.6"/>`;
@@ -172,12 +184,12 @@ function drawSMG(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,bigOp
   return s;
 }
 
-function drawAR(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,bigOpt,bigMag){
+function drawAR(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmod,supp,bigOpt,bigMag){
   const bL=bar?192:164,mL=muz?(supp?38:16):0;let s='';
   if(!noStk){const sw=foldStk?36:54;s+=`<rect x="6" y="26" width="${sw}" height="8" rx="2" fill="${stk?GA:GC}"/>`;s+=`<rect x="4" y="22" width="5" height="16" rx="2" fill="${GD}"/>`;for(let i=0;i<7;i++)s+=`<rect x="${12+i*6}" y="26" width="2" height="8" fill="${GD}" opacity="0.5"/>`;s+=`<rect x="${6+sw}" y="24" width="5" height="12" rx="1" fill="${GD}"/>`;}
   const rx=noStk?20:foldStk?48:66;
   s+=`<rect x="${rx}" y="24" width="70" height="12" rx="2" fill="${GC}"/><rect x="${rx+2}" y="25" width="66" height="6" rx="1" fill="${GL}"/>`;
-  if(fmode)s+=`<rect x="${rx+4}" y="29" width="6" height="3" rx="1" fill="${GO}"/>`;
+  if(fmod)s+=`<rect x="${rx+4}" y="29" width="6" height="3" rx="1" fill="${GO}"/>`;
   s+=`<rect x="${rx+14}" y="34" width="4" height="3" rx="1" fill="${GD}"/>`;
   s+=`<rect x="${rx+62}" y="30" width="4" height="5" rx="1" fill="${GD}"/>`;
   s+=`<path d="M${rx+46},26 Q${rx+46},42 ${rx+38},44 Q${rx+31},45 ${rx+27},39 L${rx+25},32" stroke="${GD}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
@@ -208,7 +220,7 @@ function drawAR(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,bigOpt
   return s;
 }
 
-function drawLMG(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,bigOpt,bigMag){
+function drawLMG(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmod,supp,bigOpt,bigMag){
   const bL=bar?344:308,mL=muz?(supp?40:18):0;let s='';
   s+=`<path d="M4,26 L56,24 L60,24 L60,46 L56,46 L4,44 Z" fill="${GD}"/>`;
   s+=`<rect x="6" y="26" width="50" height="18" rx="2" fill="${stk?GA:GC}"/>`;
@@ -217,7 +229,7 @@ function drawLMG(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,bigOp
   for(let i=0;i<4;i++)s+=`<rect x="98" y="${33+i*4}" width="14" height="1.5" fill="${GD}" opacity="0.7"/>`;
   s+=`<path d="M106,28 Q106,44 98,46 Q91,47 87,41 L85,34" stroke="${GD}" stroke-width="2.5" fill="none" stroke-linecap="round"/>`;
   s+=`<rect x="62" y="22" width="50" height="12" rx="2" fill="${GC}"/><rect x="64" y="23" width="46" height="6" rx="1" fill="${GL}"/>`;
-  if(fmode)s+=`<rect x="66" y="27" width="6" height="3" rx="1" fill="${GO}"/>`;
+  if(fmod)s+=`<rect x="66" y="27" width="6" height="3" rx="1" fill="${GO}"/>`;
   const dh=bigMag?38:30;
   s+=`<rect x="70" y="32" width="28" height="${dh}" rx="3" fill="${mag?GA:GD}"/>`;
   s+=`<rect x="72" y="34" width="24" height="${dh-4}" rx="2" fill="${mag?GA:GD}"/>`;
@@ -242,7 +254,7 @@ function drawLMG(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,bigOp
   return s;
 }
 
-function drawSniper(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,bigOpt,bigMag){
+function drawSniper(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmod,supp,bigOpt,bigMag){
   const bL=bar?394:354,mL=muz?(supp?48:22):0;let s='';
   s+=`<path d="M4,28 L12,24 L14,24 L18,28 L18,46 L14,50 L12,50 L4,46 Z" fill="${GD}"/>`;
   s+=`<rect x="6" y="26" width="12" height="22" rx="2" fill="${stk?GA:GC}"/>`;
@@ -284,7 +296,7 @@ function drawSniper(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,bi
   return s;
 }
 
-function drawShotgun(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,bigOpt,bigMag){
+function drawShotgun(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmod,supp,bigOpt,bigMag){
   const bL=bar?188:164,mL=muz?(supp?28:12):0;let s='';
   if(!noStk){s+=`<path d="M6,24 L16,20 L18,20 L22,24 L22,46 L18,50 L16,50 L6,46 Z" fill="${GD}"/>`;s+=`<rect x="8" y="22" width="14" height="26" rx="2" fill="${stk?GA:GC}"/>`;s+=`<rect x="18" y="22" width="50" height="20" rx="3" fill="${GC}"/>`;s+=`<rect x="66" y="24" width="14" height="18" rx="3" fill="${GC}"/>`;}
   s+=`<path d="M78,24 L90,24 L94,46 Q94,53 88,54 L78,54 Q72,54 70,47 L72,24 Z" fill="${grip?GA:GD}"/>`;
@@ -307,14 +319,14 @@ function drawShotgun(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,b
   return s;
 }
 
-function drawDMR(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmode,supp,bigOpt,bigMag){
+function drawDMR(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmod,supp,bigOpt,bigMag){
   const bL=bar?256:224,mL=muz?(supp?44:18):0;let s='';
   if(!noStk){s+=`<rect x="4" y="22" width="50" height="4" rx="2" fill="${stk?GA:GC}"/>`;s+=`<rect x="4" y="38" width="50" height="4" rx="2" fill="${stk?GA:GC}"/>`;s+=`<rect x="2" y="22" width="4" height="20" rx="2" fill="${GD}"/>`;s+=`<rect x="50" y="24" width="6" height="16" rx="2" fill="${GC}"/>`;for(let i=0;i<4;i++){s+=`<rect x="${12+i*8}" y="23" width="2" height="3" rx="0" fill="${GD}"/>`;s+=`<rect x="${12+i*8}" y="38" width="2" height="3" rx="0" fill="${GD}"/>`;}  }
   s+=`<path d="M96,24 L106,24 L110,46 Q110,53 104,54 L94,54 Q88,54 86,47 L88,24 Z" fill="${grip?GA:GD}"/>`;
   for(let i=0;i<4;i++)s+=`<rect x="90" y="${31+i*4}" width="12" height="1.5" fill="${GD}" opacity="0.6"/>`;
   s+=`<path d="M100,26 Q100,42 92,44 Q85,45 81,39 L79,33" stroke="${GD}" stroke-width="2" fill="none" stroke-linecap="round"/>`;
   s+=`<rect x="58" y="20" width="50" height="12" rx="2" fill="${GC}"/><rect x="60" y="21" width="46" height="6" rx="1" fill="${GL}"/>`;
-  if(fmode)s+=`<rect x="62" y="25" width="6" height="3" rx="1" fill="${GO}"/>`;
+  if(fmod)s+=`<rect x="62" y="25" width="6" height="3" rx="1" fill="${GO}"/>`;
   const mh=bigMag?30:22;
   s+=`<rect x="70" y="30" width="18" height="${mh}" rx="3" fill="${mag?GA:GD}"/>`;
   s+=`<rect x="78" y="34" width="2" height="${mh-8}" rx="1" fill="${GD}"/>`;
@@ -344,6 +356,31 @@ async function sbAuthFetch(path,body){const res=await fetch(`${SUPABASE_URL}/aut
 function getYouTubeId(url){if(!url)return null;const m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^&?/\s]{11})/);return m?m[1]:null;}
 function parseAtts(attachments){return(attachments||[]).reduce((acc,att)=>{const i=att.indexOf(':');if(i>-1){acc[att.substring(0,i).trim()]=att.substring(i+1).trim();}return acc;},{});}
 const inp={background:'#0d1117',border:'1px solid #30363d',borderRadius:'3px',color:'#e6f0ff',fontSize:'14px',padding:'12px',fontFamily:"'Courier New', monospace",width:'100%'};
+
+// ── LOGO SVG (inline) ─────────────────────────────────────────────────────────
+function LogoSVG({size=32}){
+  return(
+    <svg width={size} height={size*0.59} viewBox="0 0 680 400" style={{display:'block'}}>
+      <circle cx="340" cy="180" r="140" fill="none" stroke="#00e5ff" strokeWidth="1.5" opacity="0.2"/>
+      <circle cx="340" cy="180" r="110" fill="none" stroke="#00e5ff" strokeWidth="1" opacity="0.12"/>
+      <line x1="340" y1="30" x2="340" y2="90" stroke="#00e5ff" strokeWidth="1.5" opacity="0.4"/>
+      <line x1="340" y1="270" x2="340" y2="330" stroke="#00e5ff" strokeWidth="1.5" opacity="0.4"/>
+      <line x1="190" y1="180" x2="250" y2="180" stroke="#00e5ff" strokeWidth="1.5" opacity="0.4"/>
+      <line x1="430" y1="180" x2="490" y2="180" stroke="#00e5ff" strokeWidth="1.5" opacity="0.4"/>
+      <path d="M218,88 L218,108 L238,108" fill="none" stroke="#00e5ff" strokeWidth="2" opacity="0.5"/>
+      <path d="M462,88 L462,108 L442,108" fill="none" stroke="#00e5ff" strokeWidth="2" opacity="0.5"/>
+      <path d="M218,272 L218,252 L238,252" fill="none" stroke="#00e5ff" strokeWidth="2" opacity="0.5"/>
+      <path d="M462,272 L462,252 L442,252" fill="none" stroke="#00e5ff" strokeWidth="2" opacity="0.5"/>
+      <polygon points="340,46 380,70 380,118 340,142 300,118 300,70" fill="#00e5ff" opacity="0.08"/>
+      <polygon points="340,46 380,70 380,118 340,142 300,118 300,70" fill="none" stroke="#00e5ff" strokeWidth="1.5" opacity="0.5"/>
+      <path d="M312,116 L312,76 L340,104 L368,76 L368,116" fill="none" stroke="#00e5ff" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="340" cy="180" r="5" fill="#00e5ff" opacity="0.6"/>
+      <circle cx="340" cy="180" r="2" fill="#00e5ff"/>
+      <text x="340" y="232" textAnchor="middle" fontFamily="'Courier New', monospace" fontSize="80" fontWeight="bold" fill="white" letterSpacing="12">META</text>
+      <text x="340" y="308" textAnchor="middle" fontFamily="'Courier New', monospace" fontSize="80" fontWeight="bold" fill="#00e5ff" letterSpacing="12">DOOTY</text>
+    </svg>
+  );
+}
 
 // ── FEEDBACK BUTTON ───────────────────────────────────────────────────────────
 function FeedbackButton({gamertag}){
@@ -412,17 +449,97 @@ function WeaponDropdown({weapons,value,onChange}){
   </div>);
 }
 
-// ── AUTH MODAL ────────────────────────────────────────────────────────────────
+// ── AUTH MODAL (confirm password + show/hide) ─────────────────────────────────
 function AuthModal({onClose,onAuth}){
-  const[mode,setMode]=useState('login');const[email,setEmail]=useState('');const[password,setPassword]=useState('');const[gamertag,setGamertag]=useState('');const[error,setError]=useState('');const[loading,setLoading]=useState(false);const[showReset,setShowReset]=useState(false);const[resetEmail,setResetEmail]=useState('');const[resetSent,setResetSent]=useState(false);
-  async function handleSubmit(){setError('');if(!email||!password)return setError('Email and password required.');if(mode==='signup'&&!gamertag.trim())return setError('Gamertag required.');setLoading(true);if(mode==='signup'){const res=await sbAuthFetch('signup',{email,password});if(res.error){setError(res.error.message);setLoading(false);return;}const userId=res.user?.id;if(userId){await sbFetch('profiles',{method:'POST',headers:{Authorization:`Bearer ${res.access_token}`},body:JSON.stringify({id:userId,gamertag:gamertag.trim()})});onAuth({user:res.user,gamertag:gamertag.trim()});}}else{const res=await sbAuthFetch('token?grant_type=password',{email,password});if(res.error){setError(res.error.message);setLoading(false);return;}const profile=await sbFetch(`profiles?id=eq.${res.user.id}&select=gamertag`);onAuth({user:res.user,gamertag:profile?.[0]?.gamertag||'Operator'});}setLoading(false);}
+  const[mode,setMode]=useState('login');
+  const[email,setEmail]=useState('');
+  const[password,setPassword]=useState('');
+  const[confirmPassword,setConfirmPassword]=useState('');
+  const[showPassword,setShowPassword]=useState(false);
+  const[showConfirm,setShowConfirm]=useState(false);
+  const[gamertag,setGamertag]=useState('');
+  const[error,setError]=useState('');
+  const[loading,setLoading]=useState(false);
+  const[showReset,setShowReset]=useState(false);
+  const[resetEmail,setResetEmail]=useState('');
+  const[resetSent,setResetSent]=useState(false);
+
+  const eyeBtn={background:'none',border:'none',color:'#484f58',cursor:'pointer',padding:'0 4px',fontSize:'14px',position:'absolute',right:'10px',top:'50%',transform:'translateY(-50%)'};
+
+  async function handleSubmit(){
+    setError('');
+    if(!email||!password) return setError('Email and password required.');
+    if(mode==='signup'){
+      if(!gamertag.trim()) return setError('Gamertag required.');
+      if(password!==confirmPassword) return setError('Passwords do not match.');
+      if(password.length<6) return setError('Password must be at least 6 characters.');
+    }
+    setLoading(true);
+    if(mode==='signup'){
+      const res=await sbAuthFetch('signup',{email,password});
+      if(res.error){setError(res.error.message);setLoading(false);return;}
+      const userId=res.user?.id;
+      if(userId){await sbFetch('profiles',{method:'POST',headers:{Authorization:`Bearer ${res.access_token}`},body:JSON.stringify({id:userId,gamertag:gamertag.trim()})});onAuth({user:res.user,gamertag:gamertag.trim()});}
+    }else{
+      const res=await sbAuthFetch('token?grant_type=password',{email,password});
+      if(res.error){setError(res.error.message);setLoading(false);return;}
+      const profile=await sbFetch(`profiles?id=eq.${res.user.id}&select=gamertag`);
+      onAuth({user:res.user,gamertag:profile?.[0]?.gamertag||'Operator'});
+    }
+    setLoading(false);
+  }
+
   async function handleReset(){if(!resetEmail)return;await fetch(`${SUPABASE_URL}/auth/v1/recover`,{method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:JSON.stringify({email:resetEmail})});setResetSent(true);}
+
   return(<div style={{position:'fixed',inset:0,background:'#000000cc',zIndex:10000,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}>
     <div style={{background:'#0d1117',border:'1px solid #30363d',borderRadius:'6px',padding:'24px',width:'100%',maxWidth:'380px'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}><span style={{fontFamily:'Rajdhani, sans-serif',fontSize:'18px',fontWeight:'700',letterSpacing:'3px',color:'#00e5ff'}}>{showReset?'RESET PASSWORD':mode==='login'?'LOGIN':'CREATE ACCOUNT'}</span><button onClick={onClose} style={{background:'none',border:'none',color:'#484f58',cursor:'pointer',fontSize:'18px'}}>✕</button></div>
-      {showReset?(<div style={{display:'grid',gap:'10px'}}>{resetSent?<div style={{color:'#00e5ff',fontFamily:"'Courier New', monospace",fontSize:'13px'}}>// Reset email sent!</div>:<><input style={inp} placeholder="Enter your email" type="email" value={resetEmail} onChange={e=>setResetEmail(e.target.value)}/><button onClick={handleReset} style={{background:'#00e5ff22',border:'1px solid #00e5ff',borderRadius:'3px',color:'#00e5ff',fontSize:'14px',padding:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'2px'}}>SEND RESET EMAIL</button></>}<button onClick={()=>setShowReset(false)} style={{background:'none',border:'none',color:'#484f58',fontSize:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px'}}>← BACK TO LOGIN</button></div>):(
-      <><div style={{display:'flex',background:'#161b22',borderRadius:'3px',padding:'4px',gap:'4px',marginBottom:'20px'}}>{['login','signup'].map(m=><button key={m} onClick={()=>{setMode(m);setError('');}} style={{flex:1,padding:'10px',background:mode===m?'#00e5ff22':'transparent',border:mode===m?'1px solid #00e5ff44':'1px solid transparent',borderRadius:'2px',color:mode===m?'#00e5ff':'#484f58',fontFamily:"'Courier New', monospace",fontSize:'12px',letterSpacing:'2px',cursor:'pointer'}}>{m==='login'?'LOGIN':'SIGN UP'}</button>)}</div>
-      <div style={{display:'grid',gap:'10px'}}>{mode==='signup'&&<input style={inp} placeholder="Gamertag" value={gamertag} onChange={e=>setGamertag(e.target.value)}/>}<input style={inp} placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)}/><input style={inp} placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleSubmit()}/>{error&&<div style={{color:'#ff4444',fontSize:'12px',fontFamily:"'Courier New', monospace"}}>// {error}</div>}<button onClick={handleSubmit} disabled={loading} style={{background:'#00e5ff22',border:'1px solid #00e5ff',borderRadius:'3px',color:'#00e5ff',fontSize:'14px',padding:'14px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'2px',marginTop:'4px'}}>{loading?'LOADING...':mode==='login'?'LOGIN':'CREATE ACCOUNT'}</button>{mode==='login'&&<button onClick={()=>setShowReset(true)} style={{background:'none',border:'none',color:'#484f58',fontSize:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px',textAlign:'center'}}>// forgot password?</button>}</div></>)}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
+        <span style={{fontFamily:'Rajdhani, sans-serif',fontSize:'18px',fontWeight:'700',letterSpacing:'3px',color:'#00e5ff'}}>{showReset?'RESET PASSWORD':mode==='login'?'LOGIN':'CREATE ACCOUNT'}</span>
+        <button onClick={onClose} style={{background:'none',border:'none',color:'#484f58',cursor:'pointer',fontSize:'18px'}}>✕</button>
+      </div>
+      {showReset?(
+        <div style={{display:'grid',gap:'10px'}}>
+          {resetSent?<div style={{color:'#00e5ff',fontFamily:"'Courier New', monospace",fontSize:'13px'}}>// Reset email sent!</div>:<>
+            <input style={inp} placeholder="Enter your email" type="email" value={resetEmail} onChange={e=>setResetEmail(e.target.value)}/>
+            <button onClick={handleReset} style={{background:'#00e5ff22',border:'1px solid #00e5ff',borderRadius:'3px',color:'#00e5ff',fontSize:'14px',padding:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'2px'}}>SEND RESET EMAIL</button>
+          </>}
+          <button onClick={()=>setShowReset(false)} style={{background:'none',border:'none',color:'#484f58',fontSize:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px'}}>← BACK TO LOGIN</button>
+        </div>
+      ):(
+        <>
+          <div style={{display:'flex',background:'#161b22',borderRadius:'3px',padding:'4px',gap:'4px',marginBottom:'20px'}}>
+            {['login','signup'].map(m=><button key={m} onClick={()=>{setMode(m);setError('');setConfirmPassword('');}} style={{flex:1,padding:'10px',background:mode===m?'#00e5ff22':'transparent',border:mode===m?'1px solid #00e5ff44':'1px solid transparent',borderRadius:'2px',color:mode===m?'#00e5ff':'#484f58',fontFamily:"'Courier New', monospace",fontSize:'12px',letterSpacing:'2px',cursor:'pointer'}}>{m==='login'?'LOGIN':'SIGN UP'}</button>)}
+          </div>
+          <div style={{display:'grid',gap:'10px'}}>
+            {mode==='signup'&&<input style={inp} placeholder="Gamertag" value={gamertag} onChange={e=>setGamertag(e.target.value)}/>}
+            <input style={inp} placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)}/>
+            {/* Password with show/hide */}
+            <div style={{position:'relative'}}>
+              <input style={inp} placeholder="Password" type={showPassword?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!confirmPassword&&handleSubmit()}/>
+              <button type="button" onClick={()=>setShowPassword(p=>!p)} style={eyeBtn}>{showPassword?'🙈':'👁'}</button>
+            </div>
+            {/* Confirm password (signup only) */}
+            {mode==='signup'&&(
+              <div style={{position:'relative'}}>
+                <input
+                  style={{...inp,borderColor:confirmPassword&&confirmPassword!==password?'#ff4444':'#30363d'}}
+                  placeholder="Confirm password"
+                  type={showConfirm?'text':'password'}
+                  value={confirmPassword}
+                  onChange={e=>setConfirmPassword(e.target.value)}
+                  onKeyDown={e=>e.key==='Enter'&&handleSubmit()}
+                />
+                <button type="button" onClick={()=>setShowConfirm(p=>!p)} style={eyeBtn}>{showConfirm?'🙈':'👁'}</button>
+                {confirmPassword&&confirmPassword!==password&&<div style={{color:'#ff4444',fontSize:'11px',fontFamily:"'Courier New', monospace",marginTop:'4px'}}>// Passwords don't match</div>}
+                {confirmPassword&&confirmPassword===password&&<div style={{color:'#00e5ff',fontSize:'11px',fontFamily:"'Courier New', monospace",marginTop:'4px'}}>// Passwords match ✓</div>}
+              </div>
+            )}
+            {error&&<div style={{color:'#ff4444',fontSize:'12px',fontFamily:"'Courier New', monospace"}}>// {error}</div>}
+            <button onClick={handleSubmit} disabled={loading} style={{background:'#00e5ff22',border:'1px solid #00e5ff',borderRadius:'3px',color:'#00e5ff',fontSize:'14px',padding:'14px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'2px',marginTop:'4px'}}>{loading?'LOADING...':mode==='login'?'LOGIN':'CREATE ACCOUNT'}</button>
+            {mode==='login'&&<button onClick={()=>setShowReset(true)} style={{background:'none',border:'none',color:'#484f58',fontSize:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px',textAlign:'center'}}>// forgot password?</button>}
+          </div>
+        </>
+      )}
     </div>
   </div>);
 }
@@ -487,7 +604,7 @@ function SubmitLoadout({activeTab,activeMode,onSubmitted,user,gamertag,onNeedAut
       <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// WEAPON</div><WeaponDropdown weapons={weaponsList} value={weapon} onChange={setWeapon}/></div>
       <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// CORE ATTACHMENTS</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.core.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
       <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// HANDLING & CONTROL</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.handle.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
-      <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// MODS</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.mods.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
+      <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// FIRE MODS</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.mods.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
       <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// YOUTUBE VIDEO (optional)</div><input style={inp} placeholder="Paste YouTube URL..." value={videoUrl} onChange={e=>setVideoUrl(e.target.value)}/></div>
       <input style={inp} placeholder="// Note — tip, playstyle, range..." value={note} onChange={e=>setNote(e.target.value)}/>
       <button onClick={submit} disabled={loading||success||!weapon} style={{background:success?'#00e5ff44':'#00e5ff22',border:'1px solid #00e5ff',borderRadius:'3px',color:'#00e5ff',fontSize:'14px',padding:'14px',cursor:weapon?'pointer':'not-allowed',fontFamily:"'Courier New', monospace",letterSpacing:'2px',opacity:weapon?1:0.5}}>{success?'✓ SUBMITTED!':loading?'SUBMITTING...':'SUBMIT'}</button>
@@ -559,15 +676,71 @@ function LoadoutCard({loadout,index,activeTab,user,onDeleted,weaponGame}){
 
 // ── HOME ──────────────────────────────────────────────────────────────────────
 export default function Home(){
-  const[active,setActive]=useState('AR');const[mode,setMode]=useState('Warzone');const[loadouts,setLoadouts]=useState([]);const[loading,setLoading]=useState(true);const[user,setUser]=useState(null);const[gamertag,setGamertag]=useState('');const[showAuth,setShowAuth]=useState(false);
-  const[allWeapons,setAllWeapons]=useState([]);const[weaponsLoading,setWeaponsLoading]=useState(true);
-  useEffect(()=>{async function fetchWeapons(){setWeaponsLoading(true);const data=await sbFetch('weapons?order=game.asc,name.asc');setAllWeapons(data||[]);setWeaponsLoading(false);}fetchWeapons();},[]);
+  const[active,setActive]=useState('AR');
+  const[mode,setMode]=useState('Warzone');
+  const[loadouts,setLoadouts]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[user,setUser]=useState(null);
+  const[gamertag,setGamertag]=useState('');
+  const[showAuth,setShowAuth]=useState(false);
+  const[allWeapons,setAllWeapons]=useState([]);
+  const[weaponsLoading,setWeaponsLoading]=useState(true);
+
+  useEffect(()=>{
+    async function fetchWeapons(){setWeaponsLoading(true);const data=await sbFetch('weapons?order=game.asc,name.asc');setAllWeapons(data||[]);setWeaponsLoading(false);}
+    fetchWeapons();
+  },[]);
+
   const weaponsList=allWeapons.filter(w=>w.class===active);
-  async function fetchLoadouts(){setLoading(true);const data=await sbFetch(`loadouts?class=eq.${active}&mode=eq.${mode}&order=votes.desc`);setLoadouts(data||[]);setLoading(false);}
-  useEffect(()=>{fetchLoadouts();},[active,mode]);
+
+  // ── REAL-TIME SYNC ── loadouts update instantly when admin deletes/anyone adds
+  async function fetchLoadouts(){
+    setLoading(true);
+    const data=await sbFetch(`loadouts?class=eq.${active}&mode=eq.${mode}&order=votes.desc`);
+    setLoadouts(data||[]);
+    setLoading(false);
+  }
+
+  useEffect(()=>{
+    fetchLoadouts();
+
+    // Subscribe to real-time changes on the loadouts table
+    const channel = new EventSource(
+      `${SUPABASE_URL}/rest/v1/loadouts?class=eq.${active}&mode=eq.${mode}&order=votes.desc`,
+    );
+
+    // Supabase real-time via WebSocket
+    const ws = new WebSocket(
+      `${SUPABASE_URL.replace('https','wss')}/realtime/v1/websocket?apikey=${SUPABASE_KEY}&vsn=1.0.0`
+    );
+
+    ws.onopen = () => {
+      ws.send(JSON.stringify({
+        topic: 'realtime:public:loadouts',
+        event: 'phx_join',
+        payload: { config: { broadcast: { self: false }, presence: { key: '' } } },
+        ref: null,
+      }));
+    };
+
+    ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if(msg.event === 'DELETE' || msg.event === 'INSERT') {
+        fetchLoadouts();
+      }
+    };
+
+    channel.close?.();
+
+    return () => {
+      try { ws.close(); } catch(e) {}
+    };
+  },[active, mode]);
+
   function handleAuth({user,gamertag}){setUser(user);setGamertag(gamertag);setShowAuth(false);}
   async function handleLogout(){await fetch(`${SUPABASE_URL}/auth/v1/logout`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}});setUser(null);setGamertag('');}
   function getWeaponGame(weaponName){const w=allWeapons.find(x=>x.name===weaponName);return w?.game||'Warzone';}
+
   return(<>
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap');
@@ -580,24 +753,28 @@ export default function Home(){
       .tab-btn.active{color:#00e5ff;border-bottom-color:#00e5ff;}.tab-btn:not(.active){color:#8b949e;}
       ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:#0d1117;}::-webkit-scrollbar-thumb{background:#30363d;border-radius:2px;}
     `}</style>
+
     {showAuth&&<AuthModal onClose={()=>setShowAuth(false)} onAuth={handleAuth}/>}
+
     <div style={{background:'#080b10',minHeight:'100vh',color:'#e6f0ff'}}>
       <header style={{background:'linear-gradient(180deg,#0d1117 0%,#080b10 100%)',borderBottom:'1px solid #21262d',padding:'0 16px',position:'sticky',top:0,zIndex:100}}>
         <div style={{maxWidth:'900px',margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:'54px'}}>
+          {/* LOGO in header */}
           <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
             <div style={{width:'3px',height:'26px',background:'linear-gradient(180deg,#00e5ff,#0055ff)'}}/>
-            <span style={{fontFamily:'Rajdhani, sans-serif',fontSize:'20px',fontWeight:'700',letterSpacing:'3px',color:'#fff'}}>META</span>
-            <span style={{fontFamily:'Rajdhani, sans-serif',fontSize:'20px',fontWeight:'700',letterSpacing:'3px',color:'#00e5ff'}}>DOOTY</span>
+            <LogoSVG size={110}/>
             <div style={{background:'#00e5ff22',border:'1px solid #00e5ff44',color:'#00e5ff',fontSize:'8px',letterSpacing:'2px',padding:'2px 6px',fontFamily:"'Courier New', monospace"}}>MVP</div>
           </div>
           {user?(<div style={{display:'flex',alignItems:'center',gap:'10px'}}><span style={{color:'#00e5ff',fontFamily:"'Courier New', monospace",fontSize:'12px',letterSpacing:'1px'}}>{gamertag}</span><button onClick={handleLogout} style={{background:'none',border:'1px solid #30363d',borderRadius:'3px',color:'#484f58',fontSize:'11px',padding:'6px 10px',cursor:'pointer',fontFamily:"'Courier New', monospace"}}>LOGOUT</button></div>):(<button onClick={()=>setShowAuth(true)} style={{background:'#00e5ff22',border:'1px solid #00e5ff44',borderRadius:'3px',color:'#00e5ff',fontSize:'11px',padding:'8px 14px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px'}}>LOGIN / SIGN UP</button>)}
         </div>
       </header>
+
       <div style={{maxWidth:'900px',margin:'0 auto',padding:'12px 16px 0'}}>
         <div style={{display:'flex',background:'#0d1117',border:'1px solid #21262d',borderRadius:'4px',padding:'4px',gap:'4px'}}>
           {MODES.map(m=><button key={m} onClick={()=>setMode(m)} style={{flex:1,padding:'10px',borderRadius:'3px',cursor:'pointer',fontFamily:'Rajdhani, sans-serif',fontSize:'13px',fontWeight:'700',letterSpacing:'2px',background:mode===m?(m==='Warzone'?'#00e5ff22':'#ff8c0022'):'transparent',border:mode===m?`1px solid ${m==='Warzone'?'#00e5ff44':'#ff8c0044'}`:'1px solid transparent',color:mode===m?(m==='Warzone'?'#00e5ff':'#ff8c00'):'#484f58',transition:'all 0.15s'}}>{m==='Warzone'?'🟦 WARZONE':'🟧 MULTIPLAYER'}</button>)}
         </div>
       </div>
+
       <div className="tab-scroll" style={{padding:'0 16px',maxWidth:'900px',margin:'0 auto'}}>
         {TABS.map(tab=>(
           <button key={tab} onClick={()=>setActive(tab)} className={`tab-btn${active===tab?' active':''}`}>
@@ -606,6 +783,7 @@ export default function Home(){
           </button>
         ))}
       </div>
+
       <main style={{maxWidth:'900px',margin:'0 auto',padding:'16px'}}>
         <Leaderboard/>
         <SubmitLoadout activeTab={active} activeMode={mode} onSubmitted={fetchLoadouts} user={user} gamertag={gamertag} onNeedAuth={()=>setShowAuth(true)} weaponsList={weaponsList}/>
