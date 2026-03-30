@@ -12,96 +12,97 @@ const GAME_BADGE = {
   Warzone: { label: 'WZ',  color: '#00e5ff', bg: '#00e5ff22' },
 };
 
-// ── FIRE MODS (BO7 official attachment slot) ──────────────────────────────────
-const FIRE_MODS = [
-  'None',
-  'Rapid Fire',
-  'Enhanced Cycle System',
-  'MFS Snap Trigger',
-  'FMJ Ammo',
-  'High-Velocity Ammo',
-  'Incendiary Ammo',
-  'MFS 5.56 NATO FMJ',
-];
-
-const ATTACHMENT_SLOTS = {
+// ── SLOT DEFINITIONS PER CLASS ────────────────────────────────────────────────
+// BO7 weapons pull live from Supabase. BO6/WZ use these fallback arrays.
+const BO6_WZ_SLOTS = {
   AR: {
-    Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider','Muzzle Brake','Sonic Suppressor','BO7 Flash Hider','BO7 Compensator','BO7 Muzzle Brake','BO7 Suppressor','MFS Motion Suppressor'],
-    Barrel: ['None','Reinforced Heavy Barrel','Lightweight Barrel','Extended Barrel','CHF Barrel','Short Light Barrel','BO7 Heavy Barrel','BO7 Lightweight Barrel','BO7 Extended Barrel','BO7 Short Barrel','MFS Precision Barrel'],
-    Optic: ['None','Slate Reflector','Cronen Mini Red Dot','VLK 4.0x','Corio Eagleseye 2.5x','MK. 23 Reflector','JAK Glassless Optic','BO7 Reflex Sight','BO7 Holographic','BO7 2x Scope','BO7 4x Scope','BO7 6x Scope','MFS Thermal','MFS Eagle Eye'],
-    Underbarrel: ['None','XTEN Drop Grip','Ranger Foregrip','Commando Foregrip','Merc Foregrip','BO7 Vertical Grip','BO7 Angled Grip','MFS Grenade Launcher'],
-    Magazine: ['None','30 Round Mag','45 Round Mag','60 Round Mag','Extended Mag','Fast Mag','Drum Mag','BO7 Extended Mag','BO7 Fast Mag','BO7 Large Mag','BO7 Drum Mag'],
-    Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV','Canted Vibro-Dot 7','BO7 Laser Sight','BO7 Tac Laser','MFS Motion Strike Laser'],
-    'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','BRT Grip Tape','D15 Combat Grip','BO7 Grip Tape','BO7 Combat Grip','MFS Ergonomic Grip'],
-    Stock: ['None','No Stock','Demo Cleanshot Stock','FT Tac-Elite Stock','BO7 Heavy Stock','BO7 Light Stock','BO7 Folding Stock','MFS Tactical Stock','MFS Striker Tactical Stock'],
-    'Fire Mods': FIRE_MODS,
+    Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider','Muzzle Brake'],
+    Barrel: ['None','Reinforced Heavy Barrel','Lightweight Barrel','Extended Barrel','CHF Barrel','Short Light Barrel'],
+    Optic: ['None','Slate Reflector','Cronen Mini Red Dot','VLK 4.0x','Corio Eagleseye 2.5x','MK. 23 Reflector','JAK Glassless Optic'],
+    Underbarrel: ['None','XTEN Drop Grip','Ranger Foregrip','Commando Foregrip','Merc Foregrip'],
+    Magazine: ['None','30 Round Mag','45 Round Mag','60 Round Mag','Extended Mag','Fast Mag','Drum Mag'],
+    Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV','Canted Vibro-Dot 7'],
+    'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','BRT Grip Tape','D15 Combat Grip'],
+    Stock: ['None','No Stock','Demo Cleanshot Stock','FT Tac-Elite Stock'],
+    'Fire Mods': ['None','Rapid Fire','FMJ Ammo','High-Velocity Ammo'],
   },
   SMG: {
-    Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider','BO7 Flash Hider','BO7 Compensator','BO7 Suppressor','MFS Motion Suppressor'],
-    Barrel: ['None','Reinforced Heavy Barrel','Lightweight Barrel','Extended Barrel','Short Light Barrel','BO7 Heavy Barrel','BO7 Lightweight Barrel','BO7 Short Barrel','MFS Precision Barrel'],
-    Optic: ['None','Slate Reflector','Cronen Mini Red Dot','MK. 23 Reflector','JAK Glassless Optic','BO7 Reflex Sight','BO7 Holographic','BO7 2x Scope','MFS Eagle Eye'],
-    Underbarrel: ['None','XTEN Drop Grip','Commando Foregrip','Merc Foregrip','BO7 Vertical Grip','BO7 Angled Grip'],
-    Magazine: ['None','24 Round Mag','32 Round Mag','48 Round Mag','Extended Mag','Fast Mag','BO7 Extended Mag','BO7 Fast Mag','BO7 Large Mag'],
-    Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV','BO7 Laser Sight','BO7 Tac Laser','MFS Precision Laser'],
-    'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','D15 Combat Grip','BO7 Grip Tape','BO7 Combat Grip'],
-    Stock: ['None','No Stock','Folding Stock','Collapsed Stock','BO7 Heavy Stock','BO7 Light Stock','BO7 Folding Stock','MFS Tactical Stock'],
-    'Fire Mods': FIRE_MODS,
+    Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider'],
+    Barrel: ['None','Reinforced Heavy Barrel','Lightweight Barrel','Extended Barrel','Short Light Barrel'],
+    Optic: ['None','Slate Reflector','Cronen Mini Red Dot','MK. 23 Reflector','JAK Glassless Optic'],
+    Underbarrel: ['None','XTEN Drop Grip','Commando Foregrip','Merc Foregrip'],
+    Magazine: ['None','24 Round Mag','32 Round Mag','48 Round Mag','Extended Mag','Fast Mag'],
+    Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV'],
+    'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','D15 Combat Grip'],
+    Stock: ['None','No Stock','Folding Stock','Collapsed Stock'],
+    'Fire Mods': ['None','Rapid Fire','FMJ Ammo','High-Velocity Ammo'],
   },
   LMG: {
-    Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider','BO7 Flash Hider','BO7 Suppressor','MFS Motion Suppressor'],
-    Barrel: ['None','Reinforced Heavy Barrel','Lightweight Barrel','Extended Barrel','BO7 Heavy Barrel','BO7 Extended Barrel','MFS Precision Barrel'],
-    Optic: ['None','Slate Reflector','VLK 4.0x','Corio Eagleseye 2.5x','MK. 23 Reflector','BO7 Reflex Sight','BO7 4x Scope','BO7 6x Scope','MFS Thermal'],
-    Underbarrel: ['None','XTEN Drop Grip','Ranger Foregrip','Commando Foregrip','BO7 Vertical Grip','MFS Grenade Launcher'],
-    Magazine: ['None','75 Round Belt','100 Round Belt','Extended Belt','Drum Mag','BO7 Extended Mag','BO7 Large Mag','BO7 Drum Mag'],
-    Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV','MFS Motion Strike Laser','BO7 Tac Laser'],
-    'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','D15 Combat Grip','BO7 Grip Tape'],
-    Stock: ['None','LM Stockless Mod','Demo Cleanshot Stock','BO7 Heavy Stock','BO7 Light Stock','MFS Tactical Stock'],
-    'Fire Mods': FIRE_MODS,
+    Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider'],
+    Barrel: ['None','Reinforced Heavy Barrel','Lightweight Barrel','Extended Barrel'],
+    Optic: ['None','Slate Reflector','VLK 4.0x','Corio Eagleseye 2.5x','MK. 23 Reflector'],
+    Underbarrel: ['None','XTEN Drop Grip','Ranger Foregrip','Commando Foregrip'],
+    Magazine: ['None','75 Round Belt','100 Round Belt','Extended Belt','Drum Mag'],
+    Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV'],
+    'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','D15 Combat Grip'],
+    Stock: ['None','LM Stockless Mod','Demo Cleanshot Stock'],
+    'Fire Mods': ['None','Rapid Fire','FMJ Ammo','High-Velocity Ammo'],
   },
   Sniper: {
-    Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','BO7 Flash Hider','BO7 Suppressor','MFS Motion Suppressor'],
-    Barrel: ['None','Reinforced Heavy Barrel','Lightweight Barrel','Extended Barrel','BO7 Heavy Barrel','BO7 Extended Barrel','MFS Precision Barrel'],
-    Optic: ['None','Schlager 4.0x','Forge Tac Delta 4','SP-X 80 6.6x','Victus V20 10x','BO7 4x Scope','BO7 6x Scope','MFS Thermal','MFS Eagle Eye'],
-    Comb: ['None','Aim-Assist Comb','Pro-Comb','Steady-Aim Comb','BO7 Aim-Assist Comb','BO7 Pro Comb'],
-    Magazine: ['None','Extended Mag','Fast Mag','BO7 Extended Mag','BO7 Fast Mag'],
-    Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV','BO7 Laser Sight','MFS Precision Laser'],
-    'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','BO7 Grip Tape','MFS Ergonomic Grip'],
-    Stock: ['None','FSS Merc Stock','FT Tac-Elite Stock','BO7 Heavy Stock','BO7 Light Stock','MFS Tactical Stock'],
-    'Fire Mods': FIRE_MODS,
+    Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator'],
+    Barrel: ['None','Reinforced Heavy Barrel','Lightweight Barrel','Extended Barrel'],
+    Optic: ['None','Schlager 4.0x','Forge Tac Delta 4','SP-X 80 6.6x','Victus V20 10x'],
+    Comb: ['None','Aim-Assist Comb','Pro-Comb','Steady-Aim Comb'],
+    Magazine: ['None','Extended Mag','Fast Mag'],
+    Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV'],
+    'Rear Grip': ['None','Commando Grip','Sakin ZX Grip'],
+    Stock: ['None','FSS Merc Stock','FT Tac-Elite Stock'],
+    'Fire Mods': ['None','Rapid Fire','FMJ Ammo','High-Velocity Ammo'],
   },
   Shotgun: {
-    Muzzle: ['None','Shadowstrike Suppressor','Compensator','Choke','Full Choke','BO7 Compensator','BO7 Suppressor'],
-    Barrel: ['None','Reinforced Heavy Barrel','Lightweight Barrel','Short Light Barrel','Extended Barrel','BO7 Heavy Barrel','BO7 Extended Barrel'],
-    Optic: ['None','Slate Reflector','Cronen Mini Red Dot','BO7 Reflex Sight','BO7 Holographic'],
-    Underbarrel: ['None','XTEN Drop Grip','Commando Foregrip','BO7 Vertical Grip','BO7 Angled Grip'],
-    Magazine: ['None','Extended Tube','Fast Loader','Drum Shell Holder','BO7 Extended Mag','BO7 Large Mag'],
-    Laser: ['None','FSS OLE-V Laser','Canted Vibro-Dot 7','BO7 Laser Sight','BO7 Tac Laser'],
-    'Rear Grip': ['None','Commando Grip','D15 Combat Grip','BO7 Grip Tape'],
-    Stock: ['None','No Stock','Stockless Pistol Grip','BO7 Heavy Stock','BO7 Light Stock'],
-    'Fire Mods': FIRE_MODS,
+    Muzzle: ['None','Shadowstrike Suppressor','Compensator','Choke','Full Choke'],
+    Barrel: ['None','Reinforced Heavy Barrel','Lightweight Barrel','Short Light Barrel','Extended Barrel'],
+    Optic: ['None','Slate Reflector','Cronen Mini Red Dot'],
+    Underbarrel: ['None','XTEN Drop Grip','Commando Foregrip'],
+    Magazine: ['None','Extended Tube','Fast Loader','Drum Shell Holder'],
+    Laser: ['None','FSS OLE-V Laser','Canted Vibro-Dot 7'],
+    'Rear Grip': ['None','Commando Grip','D15 Combat Grip'],
+    Stock: ['None','No Stock','Stockless Pistol Grip'],
+    'Fire Mods': ['None','Rapid Fire','Incendiary Ammo','Shotgun Slugs'],
   },
   DMR: {
-    Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider','BO7 Flash Hider','BO7 Suppressor','MFS Motion Suppressor'],
-    Barrel: ['None','Reinforced Heavy Barrel','Lightweight Barrel','Extended Barrel','BO7 Heavy Barrel','BO7 Extended Barrel','MFS Precision Barrel'],
-    Optic: ['None','Schlager 4.0x','Corio Eagleseye 2.5x','VLK 4.0x','MK. 23 Reflector','BO7 4x Scope','BO7 6x Scope','MFS Thermal','MFS Eagle Eye'],
-    Underbarrel: ['None','XTEN Drop Grip','Commando Foregrip','Ranger Foregrip','BO7 Vertical Grip'],
-    Magazine: ['None','Extended Mag','Fast Mag','BO7 Extended Mag','BO7 Fast Mag','BO7 Large Mag'],
-    Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV','BO7 Laser Sight','BO7 Tac Laser'],
-    'Rear Grip': ['None','Commando Grip','Sakin ZX Grip','BO7 Grip Tape','MFS Ergonomic Grip'],
-    Stock: ['None','No Stock','FT Tac-Elite Stock','BO7 Heavy Stock','BO7 Light Stock','MFS Striker Tactical Stock'],
-    'Fire Mods': FIRE_MODS,
+    Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider'],
+    Barrel: ['None','Reinforced Heavy Barrel','Lightweight Barrel','Extended Barrel'],
+    Optic: ['None','Schlager 4.0x','Corio Eagleseye 2.5x','VLK 4.0x','MK. 23 Reflector'],
+    Underbarrel: ['None','XTEN Drop Grip','Commando Foregrip','Ranger Foregrip'],
+    Magazine: ['None','Extended Mag','Fast Mag'],
+    Laser: ['None','FSS OLE-V Laser','Schlager PEQ Box IV'],
+    'Rear Grip': ['None','Commando Grip','Sakin ZX Grip'],
+    Stock: ['None','No Stock','FT Tac-Elite Stock'],
+    'Fire Mods': ['None','Rapid Fire','FMJ Ammo','High-Velocity Ammo'],
   },
   Other: {
     Muzzle: ['None','Suppressor','Compensator','Flash Hider'],
     Barrel: ['None','Extended Barrel','Short Barrel'],
-    Optic: ['None','Slate Reflector','Red Dot','BO7 Reflex Sight'],
-    Underbarrel: ['None','Foregrip','BO7 Vertical Grip'],
+    Optic: ['None','Slate Reflector','Red Dot'],
+    Underbarrel: ['None','Foregrip'],
     Magazine: ['None','Extended Mag','Fast Mag'],
-    Laser: ['None','Laser Sight','BO7 Tac Laser'],
+    Laser: ['None','Laser Sight'],
     'Rear Grip': ['None','Grip Tape'],
     Stock: ['None','No Stock'],
-    'Fire Mods': FIRE_MODS,
+    'Fire Mods': ['None','Rapid Fire','FMJ Ammo'],
   },
+};
+
+// Slot order per class
+const CLASS_SLOTS = {
+  AR:      ['Muzzle','Barrel','Optic','Underbarrel','Magazine','Laser','Rear Grip','Stock','Fire Mods'],
+  SMG:     ['Muzzle','Barrel','Optic','Underbarrel','Magazine','Laser','Rear Grip','Stock','Fire Mods'],
+  LMG:     ['Muzzle','Barrel','Optic','Underbarrel','Magazine','Laser','Rear Grip','Stock','Fire Mods'],
+  Sniper:  ['Muzzle','Barrel','Optic','Comb','Magazine','Laser','Rear Grip','Stock','Fire Mods'],
+  Shotgun: ['Muzzle','Barrel','Optic','Underbarrel','Magazine','Laser','Rear Grip','Stock','Fire Mods'],
+  DMR:     ['Muzzle','Barrel','Optic','Underbarrel','Magazine','Laser','Rear Grip','Stock','Fire Mods'],
+  Other:   ['Muzzle','Barrel','Optic','Underbarrel','Magazine','Laser','Rear Grip','Stock','Fire Mods'],
 };
 
 const SLOT_GROUPS = {
@@ -116,6 +117,19 @@ const SLOT_COLORS = {
   Laser:'#c084fc','Rear Grip':'#c084fc',Stock:'#c084fc',
   'Fire Mods':'#ff8c00',
 };
+
+// Build slot options from Supabase attachment rows grouped by slot
+function buildSlotsFromDB(dbAttachments, cls) {
+  const slotNames = CLASS_SLOTS[cls] || CLASS_SLOTS['Other'];
+  const slots = {};
+  slotNames.forEach(slot => {
+    const options = dbAttachments
+      .filter(a => a.slot === slot)
+      .map(a => a.name);
+    slots[slot] = ['None', ...options];
+  });
+  return slots;
+}
 
 const TIER_COLORS = {
   S:{bg:'#ff4444',text:'#fff',label:'S TIER'},
@@ -584,13 +598,52 @@ function Leaderboard(){
 }
 
 // ── SUBMIT LOADOUT ────────────────────────────────────────────────────────────
-function SubmitLoadout({activeTab,activeMode,onSubmitted,user,gamertag,onNeedAuth,weaponsList}){
+function SubmitLoadout({activeTab,activeMode,onSubmitted,user,gamertag,onNeedAuth,weaponsList,allWeapons}){
   const[open,setOpen]=useState(false);const[weapon,setWeapon]=useState('');const[note,setNote]=useState('');const[videoUrl,setVideoUrl]=useState('');const[loading,setLoading]=useState(false);const[success,setSuccess]=useState(false);
-  const currentSlots=ATTACHMENT_SLOTS[activeTab]||ATTACHMENT_SLOTS['Other'];const slotNames=Object.keys(currentSlots);
+  const[currentSlots,setCurrentSlots]=useState(BO6_WZ_SLOTS[activeTab]||BO6_WZ_SLOTS['Other']);
+  const[attsLoading,setAttsLoading]=useState(false);
+  const slotNames=Object.keys(currentSlots);
   const[atts,setAtts]=useState(()=>Object.fromEntries(slotNames.map(s=>[s,'None'])));
-  useEffect(()=>{setWeapon('');const s=ATTACHMENT_SLOTS[activeTab]||ATTACHMENT_SLOTS['Other'];setAtts(Object.fromEntries(Object.keys(s).map(k=>[k,'None'])));},[activeTab]);
+
+  // When tab changes reset everything
+  useEffect(()=>{
+    setWeapon('');
+    const s=BO6_WZ_SLOTS[activeTab]||BO6_WZ_SLOTS['Other'];
+    setCurrentSlots(s);
+    setAtts(Object.fromEntries(Object.keys(s).map(k=>[k,'None'])));
+  },[activeTab]);
+
+  // When weapon changes, fetch BO7 attachments from Supabase
+  useEffect(()=>{
+    if(!weapon) return;
+    const weaponData=allWeapons.find(w=>w.name===weapon);
+    if(!weaponData || weaponData.game!=='BO7'){
+      // BO6/WZ — use hardcoded slots
+      const s=BO6_WZ_SLOTS[activeTab]||BO6_WZ_SLOTS['Other'];
+      setCurrentSlots(s);
+      setAtts(Object.fromEntries(Object.keys(s).map(k=>[k,'None'])));
+      return;
+    }
+    // BO7 — fetch live from Supabase
+    setAttsLoading(true);
+    sbFetch(`weapon_attachments?class=eq.${activeTab}&games=cs.{BO7}&order=slot.asc,name.asc`)
+      .then(data=>{
+        if(data&&data.length>0){
+          const slots=buildSlotsFromDB(data,activeTab);
+          setCurrentSlots(slots);
+          setAtts(Object.fromEntries(Object.keys(slots).map(k=>[k,'None'])));
+        }else{
+          // fallback if no data
+          const s=BO6_WZ_SLOTS[activeTab]||BO6_WZ_SLOTS['Other'];
+          setCurrentSlots(s);
+          setAtts(Object.fromEntries(Object.keys(s).map(k=>[k,'None'])));
+        }
+        setAttsLoading(false);
+      });
+  },[weapon]);
+
   function handleOpen(){if(!user){onNeedAuth();return;}setOpen(o=>!o);}
-  async function submit(){if(!weapon)return;setLoading(true);const attList=Object.entries(atts).filter(([,v])=>v&&v!=='None').map(([slot,val])=>`${slot}: ${val}`);await sbFetch('loadouts',{method:'POST',body:JSON.stringify({weapon_name:weapon,class:activeTab,mode:activeMode,attachments:attList,note:note.trim(),submitted_by:gamertag||'Anonymous',user_id:user?.id||null,video_url:videoUrl.trim()||null,votes:0})});setLoading(false);setSuccess(true);setWeapon('');setNote('');setVideoUrl('');setAtts(Object.fromEntries(slotNames.map(s=>[s,'None'])));setTimeout(()=>{setSuccess(false);setOpen(false);onSubmitted();},1500);}
+  async function submit(){if(!weapon)return;setLoading(true);const attList=Object.entries(atts).filter(([,v])=>v&&v!=='None').map(([slot,val])=>`${slot}: ${val}`);await sbFetch('loadouts',{method:'POST',body:JSON.stringify({weapon_name:weapon,class:activeTab,mode:activeMode,attachments:attList,note:note.trim(),submitted_by:gamertag||'Anonymous',user_id:user?.id||null,video_url:videoUrl.trim()||null,votes:0})});setLoading(false);setSuccess(true);setWeapon('');setNote('');setVideoUrl('');setAtts(Object.fromEntries(Object.keys(currentSlots).map(s=>[s,'None'])));setTimeout(()=>{setSuccess(false);setOpen(false);onSubmitted();},1500);}
   const activeAttCount=Object.values(atts).filter(v=>v&&v!=='None').length;
   const vb=gunViewBox(activeTab);const svg=drawGunSVG(activeTab,atts);
   return(<div style={{marginBottom:'16px'}}>
@@ -602,9 +655,12 @@ function SubmitLoadout({activeTab,activeMode,onSubmitted,user,gamertag,onNeedAut
         <div style={{color:activeAttCount===9?'#00e5ff':activeAttCount>=5?'#ff8c00':'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",textAlign:'right'}}>{activeAttCount} / 9 ATTACHMENTS</div>
       </div>
       <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// WEAPON</div><WeaponDropdown weapons={weaponsList} value={weapon} onChange={setWeapon}/></div>
-      <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// CORE ATTACHMENTS</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.core.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
-      <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// HANDLING & CONTROL</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.handle.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
-      <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// FIRE MODS</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.mods.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
+      {attsLoading&&<div style={{color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',letterSpacing:'2px',textAlign:'center',padding:'12px'}}>// LOADING ATTACHMENTS...</div>}
+      {!attsLoading&&<>
+        <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// CORE ATTACHMENTS</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.core.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
+        <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// HANDLING & CONTROL</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.handle.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
+        <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// FIRE MODS</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.mods.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
+      </>}
       <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// YOUTUBE VIDEO (optional)</div><input style={inp} placeholder="Paste YouTube URL..." value={videoUrl} onChange={e=>setVideoUrl(e.target.value)}/></div>
       <input style={inp} placeholder="// Note — tip, playstyle, range..." value={note} onChange={e=>setNote(e.target.value)}/>
       <button onClick={submit} disabled={loading||success||!weapon} style={{background:success?'#00e5ff44':'#00e5ff22',border:'1px solid #00e5ff',borderRadius:'3px',color:'#00e5ff',fontSize:'14px',padding:'14px',cursor:weapon?'pointer':'not-allowed',fontFamily:"'Courier New', monospace",letterSpacing:'2px',opacity:weapon?1:0.5}}>{success?'✓ SUBMITTED!':loading?'SUBMITTING...':'SUBMIT'}</button>
@@ -786,7 +842,7 @@ export default function Home(){
 
       <main style={{maxWidth:'900px',margin:'0 auto',padding:'16px'}}>
         <Leaderboard/>
-        <SubmitLoadout activeTab={active} activeMode={mode} onSubmitted={fetchLoadouts} user={user} gamertag={gamertag} onNeedAuth={()=>setShowAuth(true)} weaponsList={weaponsList}/>
+        <SubmitLoadout activeTab={active} activeMode={mode} onSubmitted={fetchLoadouts} user={user} gamertag={gamertag} onNeedAuth={()=>setShowAuth(true)} weaponsList={weaponsList} allWeapons={allWeapons}/>
         <div style={{display:'grid',gap:'12px'}}>
           {loading&&<div style={{color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'12px',letterSpacing:'2px',padding:'40px',textAlign:'center'}}>// LOADING LOADOUTS...</div>}
           {!loading&&loadouts.length===0&&<div style={{textAlign:'center',padding:'60px 20px',color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'13px',letterSpacing:'2px',border:'1px dashed #21262d',borderRadius:'4px'}}>// NO LOADOUTS YET — BE THE FIRST TO SUBMIT</div>}
