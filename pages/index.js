@@ -558,43 +558,195 @@ function AuthModal({onClose,onAuth}){
   </div>);
 }
 
-// ── LEADERBOARD ───────────────────────────────────────────────────────────────
-function Leaderboard(){
-  const[range,setRange]=useState('alltime');const[entries,setEntries]=useState([]);const[loading,setLoading]=useState(true);const[open,setOpen]=useState(true);
-  useEffect(()=>{fetchLeaderboard();},[range]);
-  async function fetchLeaderboard(){setLoading(true);let query='loadouts?order=votes.desc&limit=10&select=id,weapon_name,class,mode,votes,submitted_by,attachments';if(range==='week'){const weekAgo=new Date(Date.now()-7*24*60*60*1000).toISOString();query+=`&created_at=gte.${weekAgo}`;}const data=await sbFetch(query);setEntries(data||[]);setLoading(false);}
-  const medalColors=['#ffd700','#c0c0c0','#cd7f32'];
-  return(<div style={{background:'#0d1117',border:'1px solid #21262d',borderRadius:'4px',marginBottom:'16px',overflow:'hidden'}}>
-    <div onClick={()=>setOpen(o=>!o)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',cursor:'pointer',borderBottom:open?'1px solid #21262d':'none'}}>
-      <div style={{display:'flex',alignItems:'center',gap:'10px'}}><div style={{width:'3px',height:'20px',background:'linear-gradient(180deg,#ffd700,#ff8c00)',borderRadius:'2px'}}/><span style={{fontFamily:'Rajdhani, sans-serif',fontSize:'14px',fontWeight:'700',letterSpacing:'3px',color:'#ffd700'}}>LEADERBOARD</span><span style={{fontFamily:"'Courier New', monospace",fontSize:'9px',color:'#484f58',letterSpacing:'1px'}}>TOP LOADOUTS</span></div>
-      <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-        {open&&<div style={{display:'flex',background:'#161b22',borderRadius:'3px',padding:'3px',gap:'3px'}} onClick={e=>e.stopPropagation()}>{[['alltime','ALL TIME'],['week','THIS WEEK']].map(([val,label])=><button key={val} onClick={()=>setRange(val)} style={{padding:'5px 10px',background:range===val?'#ffd70022':'transparent',border:range===val?'1px solid #ffd70044':'1px solid transparent',borderRadius:'2px',color:range===val?'#ffd700':'#484f58',fontFamily:"'Courier New', monospace",fontSize:'10px',letterSpacing:'1px',cursor:'pointer'}}>{label}</button>)}</div>}
-        <span style={{color:'#484f58',fontSize:'12px'}}>{open?'▲':'▼'}</span>
+// ── LOADOUT MODAL ─────────────────────────────────────────────────────────────
+function LoadoutModal({loadout,onClose}){
+  if(!loadout)return null;
+  const parsedAtts=parseAtts(loadout.attachments);
+  const vb=gunViewBox(loadout.class);
+  const svg=drawGunSVG(loadout.class,parsedAtts);
+  const tier=getTier(loadout.votes||0);
+  const tierStyle=TIER_COLORS[tier];
+  const ytId=getYouTubeId(loadout.video_url);
+  const gameBadge=GAME_BADGE[loadout.game]||GAME_BADGE['Warzone'];
+  return(
+    <div onClick={onClose} style={{position:'fixed',inset:0,background:'#000000cc',zIndex:10000,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px',overflowY:'auto'}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:'#0d1117',border:'1px solid #30363d',borderRadius:'6px',width:'100%',maxWidth:'500px',maxHeight:'90vh',overflowY:'auto'}}>
+        {/* Header */}
+        <div style={{background:'linear-gradient(90deg,#1a1f2e,#0d1117)',borderBottom:'2px solid #00e5ff22',padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+            <div style={{width:'4px',height:'32px',background:'linear-gradient(180deg,#ffd700,#ff8c00)',borderRadius:'2px'}}/>
+            <div>
+              <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'2px'}}>
+                <span style={{color:'#ffd700',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace"}}>{loadout.submitted_by||'Anonymous'}</span>
+                {gameBadge&&<span style={{background:gameBadge.bg,border:`1px solid ${gameBadge.color}44`,color:gameBadge.color,fontSize:'8px',padding:'1px 4px',borderRadius:'2px',fontFamily:"'Courier New', monospace"}}>{gameBadge.label}</span>}
+              </div>
+              <div style={{fontSize:'18px',fontWeight:'700',color:'#e6f0ff',fontFamily:"'Courier New', monospace"}}>{loadout.weapon_name}</div>
+            </div>
+          </div>
+          <button onClick={onClose} style={{background:'none',border:'none',color:'#484f58',cursor:'pointer',fontSize:'20px',padding:'4px'}}>✕</button>
+        </div>
+        {/* Gun SVG */}
+        <div style={{background:'#080b10',padding:'12px 16px',borderBottom:'1px solid #21262d'}}>
+          <svg width="100%" viewBox={vb} style={{display:'block'}}><g dangerouslySetInnerHTML={{__html:svg}}/></svg>
+        </div>
+        {/* Attachments */}
+        <div style={{padding:'16px'}}>
+          <div style={{background:'#0a0e14',border:'1px solid #21262d',borderRadius:'3px',padding:'14px',position:'relative'}}>
+            <div style={{position:'absolute',top:0,right:0,background:tierStyle.bg,color:tierStyle.text,fontSize:'9px',fontWeight:'900',letterSpacing:'2px',padding:'3px 8px',fontFamily:"'Courier New', monospace"}}>{tierStyle.label}</div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px'}}>
+              <div style={{flex:1,paddingTop:'8px'}}>
+                {Object.entries(SLOT_COLORS).map(([slot,color])=>{
+                  const val=parsedAtts[slot];
+                  if(!val||val==='None')return null;
+                  return(<div key={slot} style={{display:'flex',alignItems:'baseline',gap:'6px',marginBottom:'6px',flexWrap:'wrap'}}>
+                    <span style={{color,fontSize:'9px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",flexShrink:0,minWidth:'80px'}}>{slot.toUpperCase()}</span>
+                    <span style={{background:'#161b22',border:`1px solid ${color}33`,color:'#c9d1d9',fontSize:'13px',padding:'4px 10px',borderRadius:'2px',fontFamily:"'Courier New', monospace"}}>{val}</span>
+                  </div>);
+                })}
+                {loadout.note&&<div style={{fontSize:'12px',color:'#484f58',fontStyle:'italic',marginTop:'8px'}}>// {loadout.note}</div>}
+                {ytId&&<div style={{marginTop:'12px',borderRadius:'4px',overflow:'hidden',border:'1px solid #21262d',position:'relative',paddingTop:'56.25%'}}><iframe src={`https://www.youtube.com/embed/${ytId}`} title="Loadout video" frameBorder="0" allowFullScreen style={{position:'absolute',top:0,left:0,width:'100%',height:'100%'}}/></div>}
+              </div>
+              <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',flexShrink:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:'4px'}}><span style={{color:'#ffd700',fontSize:'14px'}}>▲</span><span style={{color:'#e6f0ff',fontFamily:"'Courier New', monospace",fontSize:'18px',fontWeight:'700'}}>{loadout.votes||0}</span></div>
+                <div style={{color:'#484f58',fontSize:'9px',fontFamily:"'Courier New', monospace",letterSpacing:'1px'}}>votes</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    {open&&<div>
-      {loading&&<div style={{padding:'20px',textAlign:'center',color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',letterSpacing:'2px'}}>// LOADING...</div>}
-      {!loading&&entries.length===0&&<div style={{padding:'20px',textAlign:'center',color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',letterSpacing:'2px'}}>// NO LOADOUTS YET</div>}
-      {!loading&&entries.map((entry,i)=>{const tier=getTier(entry.votes);const tierStyle=TIER_COLORS[tier];const parsedAtts=parseAtts(entry.attachments);const vb=gunViewBox(entry.class);const svg=drawGunSVG(entry.class,parsedAtts);const medal=i<3?medalColors[i]:null;
-        return(<div key={entry.id} style={{display:'flex',alignItems:'center',gap:'12px',padding:'10px 16px',borderBottom:'1px solid #21262d',background:i===0?'#ffd70008':i===1?'#ffffff04':i===2?'#cd7f3208':'transparent'}}>
-          <div style={{width:'28px',flexShrink:0,textAlign:'center'}}>{medal?<div style={{width:'24px',height:'24px',borderRadius:'50%',background:medal+'22',border:`1px solid ${medal}44`,display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto'}}><span style={{color:medal,fontSize:'10px',fontWeight:'700',fontFamily:"'Courier New', monospace"}}>{i+1}</span></div>:<span style={{color:'#484f58',fontSize:'11px',fontFamily:"'Courier New', monospace"}}>#{i+1}</span>}</div>
-          <div style={{width:'100px',flexShrink:0,opacity:0.8}}><svg width="100%" viewBox={vb} style={{display:'block'}}><g dangerouslySetInnerHTML={{__html:svg}}/></svg></div>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'2px',flexWrap:'wrap'}}>
-              <span style={{fontFamily:"'Courier New', monospace",fontSize:'13px',fontWeight:'700',color:'#e6f0ff'}}>{entry.weapon_name}</span>
-              <span style={{background:'#161b22',border:'1px solid #30363d',color:'#484f58',fontSize:'9px',padding:'1px 5px',borderRadius:'2px',fontFamily:"'Courier New', monospace"}}>{entry.class}</span>
-              <span style={{background:entry.mode==='Warzone'?'#00e5ff11':'#ff8c0011',border:entry.mode==='Warzone'?'1px solid #00e5ff33':'1px solid #ff8c0033',color:entry.mode==='Warzone'?'#00e5ff':'#ff8c00',fontSize:'9px',padding:'1px 5px',borderRadius:'2px',fontFamily:"'Courier New', monospace"}}>{entry.mode}</span>
-            </div>
-            <div style={{color:'#484f58',fontSize:'10px',fontFamily:"'Courier New', monospace",letterSpacing:'1px'}}>by {entry.submitted_by||'Anonymous'}</div>
+  );
+}
+
+// ── LEADERBOARD ───────────────────────────────────────────────────────────────
+const CLASSES = ['AR','SMG','LMG','Sniper','Shotgun','DMR'];
+
+function Leaderboard(){
+  const[range,setRange]=useState('alltime');
+  const[entries,setEntries]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[open,setOpen]=useState(true);
+  const[cycleIdx,setCycleIdx]=useState(0);
+  const[modalLoadout,setModalLoadout]=useState(null);
+  const cycleRef=useRef(null);
+
+  useEffect(()=>{fetchLeaderboard();},[range]);
+
+  // Auto-cycle through classes every 4 seconds
+  useEffect(()=>{
+    if(!open||loading||entries.length===0)return;
+    cycleRef.current=setInterval(()=>{
+      setCycleIdx(i=>(i+1)%CLASSES.length);
+    },4000);
+    return()=>clearInterval(cycleRef.current);
+  },[open,loading,entries]);
+
+  async function fetchLeaderboard(){
+    setLoading(true);
+    // Fetch best loadout per class — one query per class
+    const promises=CLASSES.map(cls=>{
+      let q=`loadouts?class=eq.${cls}&order=votes.desc&limit=1&select=id,weapon_name,class,mode,votes,submitted_by,attachments,note,video_url`;
+      if(range==='week'){const weekAgo=new Date(Date.now()-7*24*60*60*1000).toISOString();q+=`&created_at=gte.${weekAgo}`;}
+      return sbFetch(q).then(d=>d&&d[0]?{...d[0],game:'BO7'}:null);
+    });
+    const results=await Promise.all(promises);
+    setEntries(results.filter(Boolean));
+    setCycleIdx(0);
+    setLoading(false);
+  }
+
+  const currentEntry=entries[cycleIdx]||null;
+
+  const medalColors=['#ffd700','#c0c0c0','#cd7f32'];
+
+  return(<>
+    {modalLoadout&&<LoadoutModal loadout={modalLoadout} onClose={()=>setModalLoadout(null)}/>}
+    <div style={{background:'#0d1117',border:'1px solid #21262d',borderRadius:'4px',marginBottom:'16px',overflow:'hidden'}}>
+      {/* Header */}
+      <div onClick={()=>setOpen(o=>!o)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',cursor:'pointer',borderBottom:open?'1px solid #21262d':'none'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+          <div style={{width:'3px',height:'20px',background:'linear-gradient(180deg,#ffd700,#ff8c00)',borderRadius:'2px'}}/>
+          <span style={{fontFamily:'Rajdhani, sans-serif',fontSize:'14px',fontWeight:'700',letterSpacing:'3px',color:'#ffd700'}}>LEADERBOARD</span>
+          <span style={{fontFamily:"'Courier New', monospace",fontSize:'9px',color:'#484f58',letterSpacing:'1px'}}>BEST PER CLASS</span>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+          {open&&<div style={{display:'flex',background:'#161b22',borderRadius:'3px',padding:'3px',gap:'3px'}} onClick={e=>e.stopPropagation()}>
+            {[['alltime','ALL TIME'],['week','THIS WEEK']].map(([val,label])=>(
+              <button key={val} onClick={()=>setRange(val)} style={{padding:'5px 10px',background:range===val?'#ffd70022':'transparent',border:range===val?'1px solid #ffd70044':'1px solid transparent',borderRadius:'2px',color:range===val?'#ffd700':'#484f58',fontFamily:"'Courier New', monospace",fontSize:'10px',letterSpacing:'1px',cursor:'pointer'}}>{label}</button>
+            ))}
+          </div>}
+          <span style={{color:'#484f58',fontSize:'12px'}}>{open?'▲':'▼'}</span>
+        </div>
+      </div>
+
+      {open&&<div>
+        {loading&&<div style={{padding:'20px',textAlign:'center',color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',letterSpacing:'2px'}}>// LOADING...</div>}
+        {!loading&&entries.length===0&&<div style={{padding:'20px',textAlign:'center',color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',letterSpacing:'2px'}}>// NO LOADOUTS YET</div>}
+
+        {/* Class tabs */}
+        {!loading&&entries.length>0&&<>
+          <div style={{display:'flex',borderBottom:'1px solid #21262d',overflowX:'auto'}}>
+            {CLASSES.map((cls,i)=>{
+              const hasEntry=entries.find(e=>e.class===cls);
+              return(
+                <button key={cls} onClick={()=>{setCycleIdx(i);clearInterval(cycleRef.current);}} style={{flex:'0 0 auto',padding:'8px 14px',background:cycleIdx===i?'#ffd70011':'transparent',border:'none',borderBottom:cycleIdx===i?'2px solid #ffd700':'2px solid transparent',color:cycleIdx===i?'#ffd700':hasEntry?'#8b949e':'#30363d',fontFamily:'Rajdhani, sans-serif',fontSize:'12px',fontWeight:'700',letterSpacing:'2px',cursor:'pointer',transition:'all 0.15s'}}>
+                  {cls}
+                </button>
+              );
+            })}
           </div>
-          <div style={{flexShrink:0,textAlign:'right',display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'4px'}}>
-            <div style={{background:tierStyle.bg,color:tierStyle.text,fontSize:'8px',fontWeight:'900',letterSpacing:'2px',padding:'2px 6px',fontFamily:"'Courier New', monospace",borderRadius:'2px'}}>{tierStyle.label}</div>
-            <div style={{display:'flex',alignItems:'center',gap:'4px'}}><span style={{color:'#ffd700',fontSize:'11px'}}>▲</span><span style={{color:'#e6f0ff',fontFamily:"'Courier New', monospace",fontSize:'14px',fontWeight:'700'}}>{entry.votes}</span></div>
-          </div>
-        </div>);
-      })}
-    </div>}
-  </div>);
+
+          {/* Featured loadout */}
+          {currentEntry&&(()=>{
+            const tier=getTier(currentEntry.votes||0);
+            const tierStyle=TIER_COLORS[tier];
+            const parsedAtts=parseAtts(currentEntry.attachments);
+            const vb=gunViewBox(currentEntry.class);
+            const svg=drawGunSVG(currentEntry.class,parsedAtts);
+            return(
+              <div onClick={()=>setModalLoadout(currentEntry)} style={{cursor:'pointer',padding:'14px 16px',transition:'background 0.15s'}} onMouseEnter={e=>e.currentTarget.style.background='#ffffff05'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                {/* Class label */}
+                <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'10px'}}>
+                  <span style={{background:'#ffd70022',border:'1px solid #ffd70044',color:'#ffd700',fontSize:'9px',padding:'2px 8px',borderRadius:'2px',fontFamily:"'Courier New', monospace",letterSpacing:'2px'}}>#{1} {currentEntry.class}</span>
+                  <span style={{background:tierStyle.bg,color:tierStyle.text,fontSize:'9px',fontWeight:'900',letterSpacing:'2px',padding:'2px 6px',fontFamily:"'Courier New', monospace",borderRadius:'2px'}}>{tierStyle.label}</span>
+                  <span style={{color:'#484f58',fontSize:'10px',fontFamily:"'Courier New', monospace",marginLeft:'auto'}}>TAP TO VIEW →</span>
+                </div>
+                {/* Gun SVG */}
+                <div style={{background:'#080b10',border:'1px solid #21262d',borderRadius:'3px',padding:'8px 12px',marginBottom:'10px'}}>
+                  <svg width="100%" viewBox={vb} style={{display:'block'}}><g dangerouslySetInnerHTML={{__html:svg}}/></svg>
+                </div>
+                {/* Info row */}
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
+                  <div>
+                    <div style={{fontSize:'16px',fontWeight:'700',color:'#e6f0ff',fontFamily:"'Courier New', monospace",marginBottom:'2px'}}>{currentEntry.weapon_name}</div>
+                    <div style={{color:'#484f58',fontSize:'10px',fontFamily:"'Courier New', monospace"}}>by {currentEntry.submitted_by||'Anonymous'} · {currentEntry.mode}</div>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:'4px',flexShrink:0}}>
+                    <span style={{color:'#ffd700',fontSize:'16px'}}>▲</span>
+                    <span style={{color:'#ffd700',fontFamily:"'Courier New', monospace",fontSize:'20px',fontWeight:'700'}}>{currentEntry.votes||0}</span>
+                  </div>
+                </div>
+                {/* Attachment preview tags */}
+                <div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginTop:'8px'}}>
+                  {Object.entries(SLOT_COLORS).slice(0,5).map(([slot,color])=>{
+                    const val=parsedAtts[slot];
+                    if(!val||val==='None')return null;
+                    return(<span key={slot} style={{background:'#161b22',border:`1px solid ${color}22`,color:'#8b949e',fontSize:'10px',padding:'2px 7px',borderRadius:'2px',fontFamily:"'Courier New', monospace"}}>{val}</span>);
+                  })}
+                </div>
+                {/* Progress dots */}
+                <div style={{display:'flex',justifyContent:'center',gap:'6px',marginTop:'12px'}}>
+                  {CLASSES.map((_,i)=>(
+                    <div key={i} onClick={e=>{e.stopPropagation();setCycleIdx(i);clearInterval(cycleRef.current);}} style={{width:cycleIdx===i?'16px':'6px',height:'6px',borderRadius:'3px',background:cycleIdx===i?'#ffd700':'#30363d',transition:'all 0.3s',cursor:'pointer'}}/>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </>}
+      </div>}
+    </div>
+  </>);
 }
 
 // ── SUBMIT LOADOUT ────────────────────────────────────────────────────────────
