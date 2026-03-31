@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createClient } from '@supabase/supabase-js';
 
 const SUPABASE_URL = 'https://fllbxwcmpifwtptkzjva.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbGJ4d2NtcGlmd3RwdGt6anZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NjgzNjQsImV4cCI6MjA5MDA0NDM2NH0.hLUFdtpoBXz7quAUs12WtcisbUk7Eu079sKfIcPj3bQ';
@@ -917,31 +918,26 @@ export default function Home(){
       `${SUPABASE_URL}/rest/v1/loadouts?class=eq.${active}&mode=eq.${mode}&order=votes.desc`,
     );
 
-    // Supabase real-time via WebSocket
-    const ws = new WebSocket(
-      `${SUPABASE_URL.replace('https','wss')}/realtime/v1/websocket?apikey=${SUPABASE_KEY}&vsn=1.0.0`
-    );
+    // Supabase realtime — proper client
+    let realtimeChannel = null;
+    try {
+      const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+      realtimeChannel = supabase
+        .channel('loadouts-db-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'loadouts' }, () => {
+          fetchLoadouts();
+        })
+        .subscribe();
+    } catch(e) {
+      console.log('Realtime setup error:', e);
+    }
 
-    ws.onopen = () => {
-      ws.send(JSON.stringify({
-        topic: 'realtime:public:loadouts',
-        event: 'phx_join',
-        payload: { config: { broadcast: { self: false }, presence: { key: '' } } },
-        ref: null,
-      }));
-    };
-
-    ws.onmessage = (e) => {
-      const msg = JSON.parse(e.data);
-      if(msg.event === 'DELETE' || msg.event === 'INSERT') {
-        fetchLoadouts();
-      }
-    };
-
-    channel.close?.();
+    // Guaranteed fallback — poll every 10 seconds
+    const poll = setInterval(fetchLoadouts, 10000);
 
     return () => {
-      try { ws.close(); } catch(e) {}
+      try { if(realtimeChannel) realtimeChannel.unsubscribe(); } catch(e) {}
+      clearInterval(poll);
     };
   },[active, mode]);
 
