@@ -1,13 +1,8 @@
-import { useState, useEffect, useRef, createContext, useContext } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { useLanguage } from '../lib/useLanguage';
 
 const SUPABASE_URL = 'https://fllbxwcmpifwtptkzjva.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsbGJ4d2NtcGlmd3RwdGt6anZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0NjgzNjQsImV4cCI6MjA5MDA0NDM2NH0.hLUFdtpoBXz7quAUs12WtcisbUk7Eu079sKfIcPj3bQ';
-
-// ── LANGUAGE CONTEXT ──────────────────────────────────────────────────────────
-const LangContext = createContext({t: k => k, lang: 'en', setLanguage: ()=>{}, SUPPORTED: ['en']});
-function useLang(){ return useContext(LangContext); }
 
 const TABS = ['AR', 'SMG', 'LMG', 'Sniper', 'Shotgun', 'DMR', 'Other'];
 const MODES = ['Warzone', 'Multiplayer'];
@@ -18,6 +13,8 @@ const GAME_BADGE = {
   Warzone: { label: 'WZ',  color: '#00e5ff', bg: '#00e5ff22' },
 };
 
+// ── SLOT DEFINITIONS PER CLASS ────────────────────────────────────────────────
+// BO7 weapons pull live from Supabase. BO6/WZ use these fallback arrays.
 const BO6_WZ_SLOTS = {
   AR: {
     Muzzle: ['None','Shadowstrike Suppressor','Monolithic Suppressor','Compensator','Flash Hider','Muzzle Brake'],
@@ -98,6 +95,7 @@ const BO6_WZ_SLOTS = {
   },
 };
 
+// Slot order per class
 const CLASS_SLOTS = {
   AR:      ['Muzzle','Barrel','Optic','Underbarrel','Magazine','Laser','Rear Grip','Stock','Fire Mods'],
   SMG:     ['Muzzle','Barrel','Optic','Underbarrel','Magazine','Laser','Rear Grip','Stock','Fire Mods'],
@@ -121,11 +119,14 @@ const SLOT_COLORS = {
   'Fire Mods':'#ff8c00',
 };
 
+// Build slot options from Supabase attachment rows grouped by slot
 function buildSlotsFromDB(dbAttachments, cls) {
   const slotNames = CLASS_SLOTS[cls] || CLASS_SLOTS['Other'];
   const slots = {};
   slotNames.forEach(slot => {
-    const options = dbAttachments.filter(a => a.slot === slot).map(a => a.name);
+    const options = dbAttachments
+      .filter(a => a.slot === slot)
+      .map(a => a.name);
     slots[slot] = ['None', ...options];
   });
   return slots;
@@ -138,6 +139,7 @@ const TIER_COLORS = {
   C:{bg:'#555',text:'#fff',label:'C TIER'},
 };
 
+// ── SVG GUN SILHOUETTES ───────────────────────────────────────────────────────
 const GC='#8b949e',GL='#adb5bd',GD='#6c737a',GA='#00e5ff',GV='#c084fc',GO='#ff8c00';
 
 function drawGunSVG(cls,atts={}){
@@ -361,6 +363,7 @@ function drawDMR(muz,bar,opt,und,mag,las,grip,stk,noStk,foldStk,fmod,supp,bigOpt
   return s;
 }
 
+// ── HELPERS ───────────────────────────────────────────────────────────────────
 function getTier(v){return v>=20?'S':v>=10?'A':v>=0?'B':'C';}
 function getFingerprint(){let fp=localStorage.getItem('md_fp');if(!fp){fp=Math.random().toString(36).slice(2);localStorage.setItem('md_fp',fp);}return fp;}
 async function sbFetch(path,opts={}){const res=await fetch(`${SUPABASE_URL}/rest/v1/${path}`,{headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json',Prefer:'return=representation',...opts.headers},...opts});if(!res.ok)return null;const text=await res.text();return text?JSON.parse(text):[];}
@@ -369,6 +372,7 @@ function getYouTubeId(url){if(!url)return null;const m=url.match(/(?:youtu\.be\/
 function parseAtts(attachments){return(attachments||[]).reduce((acc,att)=>{const i=att.indexOf(':');if(i>-1){acc[att.substring(0,i).trim()]=att.substring(i+1).trim();}return acc;},{});}
 const inp={background:'#0d1117',border:'1px solid #30363d',borderRadius:'3px',color:'#e6f0ff',fontSize:'14px',padding:'12px',fontFamily:"'Courier New', monospace",width:'100%'};
 
+// ── LOGO SVG (inline) ─────────────────────────────────────────────────────────
 function LogoSVG({size=32}){
   return(
     <svg width={size} height={size*0.59} viewBox="0 0 680 400" style={{display:'block'}}>
@@ -393,52 +397,40 @@ function LogoSVG({size=32}){
   );
 }
 
-function LangSwitcher(){
-  const {lang, setLanguage} = useLang();
-  const flags = [['en','🇺🇸'],['pt','🇧🇷'],['es','🇪🇸'],['zh','🇨🇳'],['ar','🇸🇦']];
-  return(
-    <div style={{display:'flex',alignItems:'center',gap:'2px'}}>
-      {flags.map(([code,flag])=>(
-        <button key={code} onClick={()=>setLanguage(code)} title={code.toUpperCase()} style={{background:lang===code?'#00e5ff22':'transparent',border:lang===code?'1px solid #00e5ff44':'1px solid transparent',borderRadius:'3px',padding:'4px 5px',cursor:'pointer',fontSize:'13px',opacity:lang===code?1:0.45,transition:'all 0.2s'}}>{flag}</button>
-      ))}
-    </div>
-  );
-}
-
+// ── FEEDBACK BUTTON ───────────────────────────────────────────────────────────
 function FeedbackButton({gamertag}){
-  const {t} = useLang();
   const[open,setOpen]=useState(false);const[rating,setRating]=useState(0);const[hovered,setHovered]=useState(0);const[type,setType]=useState('general');const[message,setMessage]=useState('');const[loading,setLoading]=useState(false);const[success,setSuccess]=useState(false);
-  const TYPES=[{id:'general',label:t('general')},{id:'bug',label:t('bugReport')},{id:'feature',label:t('featureRequest')},{id:'weapons',label:t('weaponsAttachments')}];
-  const RATINGS=['',t('poor'),t('fair'),t('good'),t('great'),t('goated')];
-  async function submit(){if(!message.trim())return;setLoading(true);await sbFetch('feedback',{method:'POST',body:JSON.stringify({gamertag:gamertag||t('anonymous'),rating:rating||null,type,message:message.trim()})});setLoading(false);setSuccess(true);setTimeout(()=>{setSuccess(false);setOpen(false);setRating(0);setMessage('');setType('general');},2000);}
+  const TYPES=[{id:'general',label:'General'},{id:'bug',label:'Bug Report'},{id:'feature',label:'Feature Request'},{id:'weapons',label:'Weapons/Attachments'}];
+  async function submit(){if(!message.trim())return;setLoading(true);await sbFetch('feedback',{method:'POST',body:JSON.stringify({gamertag:gamertag||'Anonymous',rating:rating||null,type,message:message.trim()})});setLoading(false);setSuccess(true);setTimeout(()=>{setSuccess(false);setOpen(false);setRating(0);setMessage('');setType('general');},2000);}
   return(<>
-    <button onClick={()=>setOpen(o=>!o)} style={{position:'fixed',bottom:'24px',right:'24px',width:'52px',height:'52px',borderRadius:'50%',background:open?'#ff8c00':'#00e5ff',border:'none',cursor:'pointer',fontSize:'22px',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9000,boxShadow:`0 4px 20px ${open?'#ff8c0044':'#00e5ff44'}`,transition:'all 0.2s'}} title={t('feedback')}>{open?'✕':'💬'}</button>
+    <button onClick={()=>setOpen(o=>!o)} style={{position:'fixed',bottom:'24px',right:'24px',width:'52px',height:'52px',borderRadius:'50%',background:open?'#ff8c00':'#00e5ff',border:'none',cursor:'pointer',fontSize:'22px',display:'flex',alignItems:'center',justifyContent:'center',zIndex:9000,boxShadow:`0 4px 20px ${open?'#ff8c0044':'#00e5ff44'}`,transition:'all 0.2s'}} title="Send Feedback">{open?'✕':'💬'}</button>
     {open&&<div style={{position:'fixed',bottom:'88px',right:'24px',width:'320px',background:'#0d1117',border:'1px solid #30363d',borderRadius:'8px',padding:'20px',zIndex:9000,boxShadow:'0 8px 32px #00000088'}}>
       <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
         <div style={{width:'3px',height:'20px',background:'linear-gradient(180deg,#00e5ff,#0077ff)',borderRadius:'2px'}}/>
-        <span style={{fontFamily:'Rajdhani, sans-serif',fontSize:'16px',fontWeight:'700',letterSpacing:'3px',color:'#00e5ff'}}>{t('feedback')}</span>
+        <span style={{fontFamily:'Rajdhani, sans-serif',fontSize:'16px',fontWeight:'700',letterSpacing:'3px',color:'#00e5ff'}}>FEEDBACK</span>
       </div>
-      {success?(<div style={{textAlign:'center',padding:'24px 0'}}><div style={{fontSize:'32px',marginBottom:'8px'}}>✓</div><div style={{color:'#00e5ff',fontFamily:"'Courier New', monospace",fontSize:'13px',letterSpacing:'2px'}}>{t('thanksFeedback')}</div></div>):(
+      {success?(<div style={{textAlign:'center',padding:'24px 0'}}><div style={{fontSize:'32px',marginBottom:'8px'}}>✓</div><div style={{color:'#00e5ff',fontFamily:"'Courier New', monospace",fontSize:'13px',letterSpacing:'2px'}}>THANKS FOR THE FEEDBACK!</div></div>):(
         <div style={{display:'grid',gap:'12px'}}>
-          <div><div style={{color:'#484f58',fontSize:'9px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'8px'}}>{t('rateApp')}</div>
+          <div><div style={{color:'#484f58',fontSize:'9px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'8px'}}>// RATE THE APP</div>
             <div style={{display:'flex',gap:'6px'}}>{[1,2,3,4,5].map(star=><button key={star} onClick={()=>setRating(star)} onMouseEnter={()=>setHovered(star)} onMouseLeave={()=>setHovered(0)} style={{background:'none',border:'none',cursor:'pointer',fontSize:'24px',padding:'2px',color:star<=(hovered||rating)?'#ffd700':'#30363d',transition:'color 0.1s'}}>★</button>)}
-              {rating>0&&<span style={{color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',alignSelf:'center',marginLeft:'4px'}}>{RATINGS[rating]}</span>}
+              {rating>0&&<span style={{color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',alignSelf:'center',marginLeft:'4px'}}>{['','Poor','Fair','Good','Great','GOATED'][rating]}</span>}
             </div>
           </div>
-          <div><div style={{color:'#484f58',fontSize:'9px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'8px'}}>{t('type')}</div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px'}}>{TYPES.map(tp=><button key={tp.id} onClick={()=>setType(tp.id)} style={{padding:'7px 10px',background:type===tp.id?'#00e5ff22':'#161b22',border:type===tp.id?'1px solid #00e5ff44':'1px solid #30363d',borderRadius:'3px',color:type===tp.id?'#00e5ff':'#484f58',fontFamily:"'Courier New', monospace",fontSize:'10px',letterSpacing:'1px',cursor:'pointer',textAlign:'left'}}>{tp.label}</button>)}</div>
+          <div><div style={{color:'#484f58',fontSize:'9px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'8px'}}>// TYPE</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px'}}>{TYPES.map(t=><button key={t.id} onClick={()=>setType(t.id)} style={{padding:'7px 10px',background:type===t.id?'#00e5ff22':'#161b22',border:type===t.id?'1px solid #00e5ff44':'1px solid #30363d',borderRadius:'3px',color:type===t.id?'#00e5ff':'#484f58',fontFamily:"'Courier New', monospace",fontSize:'10px',letterSpacing:'1px',cursor:'pointer',textAlign:'left'}}>{t.label}</button>)}</div>
           </div>
-          <div><div style={{color:'#484f58',fontSize:'9px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'8px'}}>{t('message')}</div>
-            <textarea value={message} onChange={e=>setMessage(e.target.value)} placeholder={t('feedbackPlaceholder')} rows={4} style={{background:'#0d1117',border:'1px solid #30363d',borderRadius:'3px',color:'#e6f0ff',fontSize:'13px',padding:'10px 12px',fontFamily:"'Courier New', monospace",width:'100%',resize:'vertical',lineHeight:'1.5'}}/>
+          <div><div style={{color:'#484f58',fontSize:'9px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'8px'}}>// MESSAGE</div>
+            <textarea value={message} onChange={e=>setMessage(e.target.value)} placeholder="Tell us what you think, what's broken, or what you want to see..." rows={4} style={{background:'#0d1117',border:'1px solid #30363d',borderRadius:'3px',color:'#e6f0ff',fontSize:'13px',padding:'10px 12px',fontFamily:"'Courier New', monospace",width:'100%',resize:'vertical',lineHeight:'1.5'}}/>
           </div>
-          <div style={{color:'#484f58',fontSize:'10px',fontFamily:"'Courier New', monospace"}}>{t('sendingAs')} <span style={{color:'#00e5ff'}}>{gamertag||t('anonymous')}</span></div>
-          <button onClick={submit} disabled={loading||!message.trim()} style={{background:message.trim()?'#00e5ff22':'#161b22',border:`1px solid ${message.trim()?'#00e5ff':'#30363d'}`,borderRadius:'3px',color:message.trim()?'#00e5ff':'#484f58',fontSize:'13px',padding:'12px',cursor:message.trim()?'pointer':'not-allowed',fontFamily:"'Courier New', monospace",letterSpacing:'2px',width:'100%'}}>{loading?t('sending'):t('sendFeedback')}</button>
+          <div style={{color:'#484f58',fontSize:'10px',fontFamily:"'Courier New', monospace"}}>// Sending as: <span style={{color:'#00e5ff'}}>{gamertag||'Anonymous'}</span></div>
+          <button onClick={submit} disabled={loading||!message.trim()} style={{background:message.trim()?'#00e5ff22':'#161b22',border:`1px solid ${message.trim()?'#00e5ff':'#30363d'}`,borderRadius:'3px',color:message.trim()?'#00e5ff':'#484f58',fontSize:'13px',padding:'12px',cursor:message.trim()?'pointer':'not-allowed',fontFamily:"'Courier New', monospace",letterSpacing:'2px',width:'100%'}}>{loading?'SENDING...':'SEND FEEDBACK'}</button>
         </div>
       )}
     </div>}
   </>);
 }
 
+// ── DROPDOWN ──────────────────────────────────────────────────────────────────
 function Dropdown({label,options,value,onChange,placeholder}){
   const[open,setOpen]=useState(false);const ref=useRef();
   useEffect(()=>{function h(e){if(ref.current&&!ref.current.contains(e.target))setOpen(false);}document.addEventListener('mousedown',h);return()=>document.removeEventListener('mousedown',h);},[]);
@@ -453,8 +445,8 @@ function Dropdown({label,options,value,onChange,placeholder}){
   </div>);
 }
 
+// ── WEAPON DROPDOWN ───────────────────────────────────────────────────────────
 function WeaponDropdown({weapons,value,onChange}){
-  const {t} = useLang();
   const[open,setOpen]=useState(false);const ref=useRef();
   useEffect(()=>{function h(e){if(ref.current&&!ref.current.contains(e.target))setOpen(false);}document.addEventListener('mousedown',h);return()=>document.removeEventListener('mousedown',h);},[]);
   const selected=weapons.find(w=>w.name===value);
@@ -462,7 +454,7 @@ function WeaponDropdown({weapons,value,onChange}){
     <button type="button" onClick={()=>setOpen(o=>!o)} style={{width:'100%',background:'#0d1117',border:'1px solid #30363d',borderRadius:open?'3px 3px 0 0':'3px',color:value?'#e6f0ff':'#484f58',fontSize:'13px',padding:'10px 12px',fontFamily:"'Courier New', monospace",cursor:'pointer',textAlign:'left',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
       <span style={{display:'flex',alignItems:'center',gap:'8px'}}>
         {selected&&<span style={{background:GAME_BADGE[selected.game]?.bg||'#ffffff11',border:`1px solid ${GAME_BADGE[selected.game]?.color||'#fff'}44`,color:GAME_BADGE[selected.game]?.color||'#fff',fontSize:'9px',padding:'1px 5px',borderRadius:'2px',fontFamily:"'Courier New', monospace",flexShrink:0}}>{GAME_BADGE[selected.game]?.label||selected.game}</span>}
-        {value||t('selectWeaponDrop')}
+        {value||'Select weapon...'}
       </span>
       <span style={{color:'#484f58',fontSize:'10px',marginLeft:'8px'}}>{open?'▲':'▼'}</span>
     </button>
@@ -472,8 +464,8 @@ function WeaponDropdown({weapons,value,onChange}){
   </div>);
 }
 
+// ── AUTH MODAL (confirm password + show/hide) ─────────────────────────────────
 function AuthModal({onClose,onAuth}){
-  const {t} = useLang();
   const[mode,setMode]=useState('login');
   const[email,setEmail]=useState('');
   const[password,setPassword]=useState('');
@@ -491,11 +483,11 @@ function AuthModal({onClose,onAuth}){
 
   async function handleSubmit(){
     setError('');
-    if(!email||!password) return setError(t('passwordRequired'));
+    if(!email||!password) return setError('Email and password required.');
     if(mode==='signup'){
-      if(!gamertag.trim()) return setError(t('gamertagRequired'));
-      if(password!==confirmPassword) return setError(t('passwordMismatch'));
-      if(password.length<6) return setError(t('passwordLength'));
+      if(!gamertag.trim()) return setError('Gamertag required.');
+      if(password!==confirmPassword) return setError('Passwords do not match.');
+      if(password.length<6) return setError('Password must be at least 6 characters.');
     }
     setLoading(true);
     if(mode==='signup'){
@@ -517,40 +509,49 @@ function AuthModal({onClose,onAuth}){
   return(<div style={{position:'fixed',inset:0,background:'#000000cc',zIndex:10000,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}>
     <div style={{background:'#0d1117',border:'1px solid #30363d',borderRadius:'6px',padding:'24px',width:'100%',maxWidth:'380px'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
-        <span style={{fontFamily:'Rajdhani, sans-serif',fontSize:'18px',fontWeight:'700',letterSpacing:'3px',color:'#00e5ff'}}>{showReset?t('resetPassword'):mode==='login'?t('login'):t('createAccount')}</span>
+        <span style={{fontFamily:'Rajdhani, sans-serif',fontSize:'18px',fontWeight:'700',letterSpacing:'3px',color:'#00e5ff'}}>{showReset?'RESET PASSWORD':mode==='login'?'LOGIN':'CREATE ACCOUNT'}</span>
         <button onClick={onClose} style={{background:'none',border:'none',color:'#484f58',cursor:'pointer',fontSize:'18px'}}>✕</button>
       </div>
       {showReset?(
         <div style={{display:'grid',gap:'10px'}}>
-          {resetSent?<div style={{color:'#00e5ff',fontFamily:"'Courier New', monospace",fontSize:'13px'}}>{t('resetSent')}</div>:<>
-            <input style={inp} placeholder={t('email')} type="email" value={resetEmail} onChange={e=>setResetEmail(e.target.value)}/>
-            <button onClick={handleReset} style={{background:'#00e5ff22',border:'1px solid #00e5ff',borderRadius:'3px',color:'#00e5ff',fontSize:'14px',padding:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'2px'}}>{t('sendResetEmail')}</button>
+          {resetSent?<div style={{color:'#00e5ff',fontFamily:"'Courier New', monospace",fontSize:'13px'}}>// Reset email sent!</div>:<>
+            <input style={inp} placeholder="Enter your email" type="email" value={resetEmail} onChange={e=>setResetEmail(e.target.value)}/>
+            <button onClick={handleReset} style={{background:'#00e5ff22',border:'1px solid #00e5ff',borderRadius:'3px',color:'#00e5ff',fontSize:'14px',padding:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'2px'}}>SEND RESET EMAIL</button>
           </>}
-          <button onClick={()=>setShowReset(false)} style={{background:'none',border:'none',color:'#484f58',fontSize:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px'}}>{t('backToLogin')}</button>
+          <button onClick={()=>setShowReset(false)} style={{background:'none',border:'none',color:'#484f58',fontSize:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px'}}>← BACK TO LOGIN</button>
         </div>
       ):(
         <>
           <div style={{display:'flex',background:'#161b22',borderRadius:'3px',padding:'4px',gap:'4px',marginBottom:'20px'}}>
-            {['login','signup'].map(m=><button key={m} onClick={()=>{setMode(m);setError('');setConfirmPassword('');}} style={{flex:1,padding:'10px',background:mode===m?'#00e5ff22':'transparent',border:mode===m?'1px solid #00e5ff44':'1px solid transparent',borderRadius:'2px',color:mode===m?'#00e5ff':'#484f58',fontFamily:"'Courier New', monospace",fontSize:'12px',letterSpacing:'2px',cursor:'pointer'}}>{m==='login'?t('login'):t('signup')}</button>)}
+            {['login','signup'].map(m=><button key={m} onClick={()=>{setMode(m);setError('');setConfirmPassword('');}} style={{flex:1,padding:'10px',background:mode===m?'#00e5ff22':'transparent',border:mode===m?'1px solid #00e5ff44':'1px solid transparent',borderRadius:'2px',color:mode===m?'#00e5ff':'#484f58',fontFamily:"'Courier New', monospace",fontSize:'12px',letterSpacing:'2px',cursor:'pointer'}}>{m==='login'?'LOGIN':'SIGN UP'}</button>)}
           </div>
           <div style={{display:'grid',gap:'10px'}}>
-            {mode==='signup'&&<input style={inp} placeholder={t('gamertag')} value={gamertag} onChange={e=>setGamertag(e.target.value)}/>}
-            <input style={inp} placeholder={t('email')} type="email" value={email} onChange={e=>setEmail(e.target.value)}/>
+            {mode==='signup'&&<input style={inp} placeholder="Gamertag" value={gamertag} onChange={e=>setGamertag(e.target.value)}/>}
+            <input style={inp} placeholder="Email" type="email" value={email} onChange={e=>setEmail(e.target.value)}/>
+            {/* Password with show/hide */}
             <div style={{position:'relative'}}>
-              <input style={inp} placeholder={t('password')} type={showPassword?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!confirmPassword&&handleSubmit()}/>
+              <input style={inp} placeholder="Password" type={showPassword?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!confirmPassword&&handleSubmit()}/>
               <button type="button" onClick={()=>setShowPassword(p=>!p)} style={eyeBtn}>{showPassword?'🙈':'👁'}</button>
             </div>
+            {/* Confirm password (signup only) */}
             {mode==='signup'&&(
               <div style={{position:'relative'}}>
-                <input style={{...inp,borderColor:confirmPassword&&confirmPassword!==password?'#ff4444':'#30363d'}} placeholder={t('confirmPassword')} type={showConfirm?'text':'password'} value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleSubmit()}/>
+                <input
+                  style={{...inp,borderColor:confirmPassword&&confirmPassword!==password?'#ff4444':'#30363d'}}
+                  placeholder="Confirm password"
+                  type={showConfirm?'text':'password'}
+                  value={confirmPassword}
+                  onChange={e=>setConfirmPassword(e.target.value)}
+                  onKeyDown={e=>e.key==='Enter'&&handleSubmit()}
+                />
                 <button type="button" onClick={()=>setShowConfirm(p=>!p)} style={eyeBtn}>{showConfirm?'🙈':'👁'}</button>
-                {confirmPassword&&confirmPassword!==password&&<div style={{color:'#ff4444',fontSize:'11px',fontFamily:"'Courier New', monospace",marginTop:'4px'}}>{t('passwordMatch')}</div>}
-                {confirmPassword&&confirmPassword===password&&<div style={{color:'#00e5ff',fontSize:'11px',fontFamily:"'Courier New', monospace",marginTop:'4px'}}>{t('passwordMatchOk')}</div>}
+                {confirmPassword&&confirmPassword!==password&&<div style={{color:'#ff4444',fontSize:'11px',fontFamily:"'Courier New', monospace",marginTop:'4px'}}>// Passwords don't match</div>}
+                {confirmPassword&&confirmPassword===password&&<div style={{color:'#00e5ff',fontSize:'11px',fontFamily:"'Courier New', monospace",marginTop:'4px'}}>// Passwords match ✓</div>}
               </div>
             )}
             {error&&<div style={{color:'#ff4444',fontSize:'12px',fontFamily:"'Courier New', monospace"}}>// {error}</div>}
-            <button onClick={handleSubmit} disabled={loading} style={{background:'#00e5ff22',border:'1px solid #00e5ff',borderRadius:'3px',color:'#00e5ff',fontSize:'14px',padding:'14px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'2px',marginTop:'4px'}}>{loading?'LOADING...':mode==='login'?t('login'):t('createAccount')}</button>
-            {mode==='login'&&<button onClick={()=>setShowReset(true)} style={{background:'none',border:'none',color:'#484f58',fontSize:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px',textAlign:'center'}}>{t('forgotPassword')}</button>}
+            <button onClick={handleSubmit} disabled={loading} style={{background:'#00e5ff22',border:'1px solid #00e5ff',borderRadius:'3px',color:'#00e5ff',fontSize:'14px',padding:'14px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'2px',marginTop:'4px'}}>{loading?'LOADING...':mode==='login'?'LOGIN':'CREATE ACCOUNT'}</button>
+            {mode==='login'&&<button onClick={()=>setShowReset(true)} style={{background:'none',border:'none',color:'#484f58',fontSize:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px',textAlign:'center'}}>// forgot password?</button>}
           </div>
         </>
       )}
@@ -558,8 +559,8 @@ function AuthModal({onClose,onAuth}){
   </div>);
 }
 
+// ── LOADOUT MODAL ─────────────────────────────────────────────────────────────
 function LoadoutModal({loadout,onClose}){
-  const {t} = useLang();
   if(!loadout)return null;
   const parsedAtts=parseAtts(loadout.attachments);
   const vb=gunViewBox(loadout.class);
@@ -571,12 +572,13 @@ function LoadoutModal({loadout,onClose}){
   return(
     <div onClick={onClose} style={{position:'fixed',inset:0,background:'#000000cc',zIndex:10000,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px',overflowY:'auto'}}>
       <div onClick={e=>e.stopPropagation()} style={{background:'#0d1117',border:'1px solid #30363d',borderRadius:'6px',width:'100%',maxWidth:'500px',maxHeight:'90vh',overflowY:'auto'}}>
+        {/* Header */}
         <div style={{background:'linear-gradient(90deg,#1a1f2e,#0d1117)',borderBottom:'2px solid #00e5ff22',padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
           <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
             <div style={{width:'4px',height:'32px',background:'linear-gradient(180deg,#ffd700,#ff8c00)',borderRadius:'2px'}}/>
             <div>
               <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'2px'}}>
-                <span style={{color:'#ffd700',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace"}}>{loadout.submitted_by||t('anonymous')}</span>
+                <span style={{color:'#ffd700',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace"}}>{loadout.submitted_by||'Anonymous'}</span>
                 {gameBadge&&<span style={{background:gameBadge.bg,border:`1px solid ${gameBadge.color}44`,color:gameBadge.color,fontSize:'8px',padding:'1px 4px',borderRadius:'2px',fontFamily:"'Courier New', monospace"}}>{gameBadge.label}</span>}
               </div>
               <div style={{fontSize:'18px',fontWeight:'700',color:'#e6f0ff',fontFamily:"'Courier New', monospace"}}>{loadout.weapon_name}</div>
@@ -584,21 +586,30 @@ function LoadoutModal({loadout,onClose}){
           </div>
           <button onClick={onClose} style={{background:'none',border:'none',color:'#484f58',cursor:'pointer',fontSize:'20px',padding:'4px'}}>✕</button>
         </div>
+        {/* Gun SVG */}
         <div style={{background:'#080b10',padding:'12px 16px',borderBottom:'1px solid #21262d'}}>
           <svg width="100%" viewBox={vb} style={{display:'block'}}><g dangerouslySetInnerHTML={{__html:svg}}/></svg>
         </div>
+        {/* Attachments */}
         <div style={{padding:'16px'}}>
           <div style={{background:'#0a0e14',border:'1px solid #21262d',borderRadius:'3px',padding:'14px',position:'relative'}}>
             <div style={{position:'absolute',top:0,right:0,background:tierStyle.bg,color:tierStyle.text,fontSize:'9px',fontWeight:'900',letterSpacing:'2px',padding:'3px 8px',fontFamily:"'Courier New', monospace"}}>{tierStyle.label}</div>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px'}}>
               <div style={{flex:1,paddingTop:'8px'}}>
-                {Object.entries(SLOT_COLORS).map(([slot,color])=>{const val=parsedAtts[slot];if(!val||val==='None')return null;return(<div key={slot} style={{display:'flex',alignItems:'baseline',gap:'6px',marginBottom:'6px',flexWrap:'wrap'}}><span style={{color,fontSize:'9px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",flexShrink:0,minWidth:'80px'}}>{slot.toUpperCase()}</span><span style={{background:'#161b22',border:`1px solid ${color}33`,color:'#c9d1d9',fontSize:'13px',padding:'4px 10px',borderRadius:'2px',fontFamily:"'Courier New', monospace"}}>{val}</span></div>);})}
+                {Object.entries(SLOT_COLORS).map(([slot,color])=>{
+                  const val=parsedAtts[slot];
+                  if(!val||val==='None')return null;
+                  return(<div key={slot} style={{display:'flex',alignItems:'baseline',gap:'6px',marginBottom:'6px',flexWrap:'wrap'}}>
+                    <span style={{color,fontSize:'9px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",flexShrink:0,minWidth:'80px'}}>{slot.toUpperCase()}</span>
+                    <span style={{background:'#161b22',border:`1px solid ${color}33`,color:'#c9d1d9',fontSize:'13px',padding:'4px 10px',borderRadius:'2px',fontFamily:"'Courier New', monospace"}}>{val}</span>
+                  </div>);
+                })}
                 {loadout.note&&<div style={{fontSize:'12px',color:'#484f58',fontStyle:'italic',marginTop:'8px'}}>// {loadout.note}</div>}
                 {ytId&&<div style={{marginTop:'12px',borderRadius:'4px',overflow:'hidden',border:'1px solid #21262d',position:'relative',paddingTop:'56.25%'}}><iframe src={`https://www.youtube.com/embed/${ytId}`} title="Loadout video" frameBorder="0" allowFullScreen style={{position:'absolute',top:0,left:0,width:'100%',height:'100%'}}/></div>}
               </div>
               <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',flexShrink:0}}>
                 <div style={{display:'flex',alignItems:'center',gap:'4px'}}><span style={{color:'#ffd700',fontSize:'14px'}}>▲</span><span style={{color:'#e6f0ff',fontFamily:"'Courier New', monospace",fontSize:'18px',fontWeight:'700'}}>{loadout.votes||0}</span></div>
-                <div style={{color:'#484f58',fontSize:'9px',fontFamily:"'Courier New', monospace",letterSpacing:'1px'}}>{t('votes')}</div>
+                <div style={{color:'#484f58',fontSize:'9px',fontFamily:"'Courier New', monospace",letterSpacing:'1px'}}>votes</div>
               </div>
             </div>
           </div>
@@ -608,10 +619,10 @@ function LoadoutModal({loadout,onClose}){
   );
 }
 
+// ── LEADERBOARD ───────────────────────────────────────────────────────────────
 const CLASSES = ['AR','SMG','LMG','Sniper','Shotgun','DMR'];
 
 function Leaderboard(){
-  const {t} = useLang();
   const[range,setRange]=useState('alltime');
   const[entries,setEntries]=useState([]);
   const[loading,setLoading]=useState(true);
@@ -622,14 +633,18 @@ function Leaderboard(){
 
   useEffect(()=>{fetchLeaderboard();},[range]);
 
+  // Auto-cycle through classes every 4 seconds
   useEffect(()=>{
     if(!open||loading||entries.length===0)return;
-    cycleRef.current=setInterval(()=>{setCycleIdx(i=>(i+1)%CLASSES.length);},4000);
+    cycleRef.current=setInterval(()=>{
+      setCycleIdx(i=>(i+1)%CLASSES.length);
+    },4000);
     return()=>clearInterval(cycleRef.current);
   },[open,loading,entries]);
 
   async function fetchLeaderboard(){
     setLoading(true);
+    // Fetch best loadout per class — one query per class
     const promises=CLASSES.map(cls=>{
       let q=`loadouts?class=eq.${cls}&order=votes.desc&limit=1&select=id,weapon_name,class,mode,votes,submitted_by,attachments,note,video_url`;
       if(range==='week'){const weekAgo=new Date(Date.now()-7*24*60*60*1000).toISOString();q+=`&created_at=gte.${weekAgo}`;}
@@ -643,18 +658,21 @@ function Leaderboard(){
 
   const currentEntry=entries[cycleIdx]||null;
 
+  const medalColors=['#ffd700','#c0c0c0','#cd7f32'];
+
   return(<>
     {modalLoadout&&<LoadoutModal loadout={modalLoadout} onClose={()=>setModalLoadout(null)}/>}
     <div style={{background:'#0d1117',border:'1px solid #21262d',borderRadius:'4px',marginBottom:'16px',overflow:'hidden'}}>
+      {/* Header */}
       <div onClick={()=>setOpen(o=>!o)} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',cursor:'pointer',borderBottom:open?'1px solid #21262d':'none'}}>
         <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
           <div style={{width:'3px',height:'20px',background:'linear-gradient(180deg,#ffd700,#ff8c00)',borderRadius:'2px'}}/>
-          <span style={{fontFamily:'Rajdhani, sans-serif',fontSize:'14px',fontWeight:'700',letterSpacing:'3px',color:'#ffd700'}}>{t('leaderboard')}</span>
-          <span style={{fontFamily:"'Courier New', monospace",fontSize:'9px',color:'#484f58',letterSpacing:'1px'}}>{t('bestPerClass')}</span>
+          <span style={{fontFamily:'Rajdhani, sans-serif',fontSize:'14px',fontWeight:'700',letterSpacing:'3px',color:'#ffd700'}}>LEADERBOARD</span>
+          <span style={{fontFamily:"'Courier New', monospace",fontSize:'9px',color:'#484f58',letterSpacing:'1px'}}>BEST PER CLASS</span>
         </div>
         <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
           {open&&<div style={{display:'flex',background:'#161b22',borderRadius:'3px',padding:'3px',gap:'3px'}} onClick={e=>e.stopPropagation()}>
-            {[['alltime',t('allTime')],['week',t('thisWeek')]].map(([val,label])=>(
+            {[['alltime','ALL TIME'],['week','THIS WEEK']].map(([val,label])=>(
               <button key={val} onClick={()=>setRange(val)} style={{padding:'5px 10px',background:range===val?'#ffd70022':'transparent',border:range===val?'1px solid #ffd70044':'1px solid transparent',borderRadius:'2px',color:range===val?'#ffd700':'#484f58',fontFamily:"'Courier New', monospace",fontSize:'10px',letterSpacing:'1px',cursor:'pointer'}}>{label}</button>
             ))}
           </div>}
@@ -663,9 +681,10 @@ function Leaderboard(){
       </div>
 
       {open&&<div>
-        {loading&&<div style={{padding:'20px',textAlign:'center',color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',letterSpacing:'2px'}}>{t('loading')}</div>}
-        {!loading&&entries.length===0&&<div style={{padding:'20px',textAlign:'center',color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',letterSpacing:'2px'}}>{t('noLoadoutsYet')}</div>}
+        {loading&&<div style={{padding:'20px',textAlign:'center',color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',letterSpacing:'2px'}}>// LOADING...</div>}
+        {!loading&&entries.length===0&&<div style={{padding:'20px',textAlign:'center',color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',letterSpacing:'2px'}}>// NO LOADOUTS YET</div>}
 
+        {/* Class tabs */}
         {!loading&&entries.length>0&&<>
           <div style={{display:'flex',borderBottom:'1px solid #21262d',overflowX:'auto'}}>
             {CLASSES.map((cls,i)=>{
@@ -678,6 +697,7 @@ function Leaderboard(){
             })}
           </div>
 
+          {/* Featured loadout */}
           {currentEntry&&(()=>{
             const tier=getTier(currentEntry.votes||0);
             const tierStyle=TIER_COLORS[tier];
@@ -686,27 +706,36 @@ function Leaderboard(){
             const svg=drawGunSVG(currentEntry.class,parsedAtts);
             return(
               <div onClick={()=>setModalLoadout(currentEntry)} style={{cursor:'pointer',padding:'14px 16px',transition:'background 0.15s'}} onMouseEnter={e=>e.currentTarget.style.background='#ffffff05'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                {/* Class label */}
                 <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'10px'}}>
                   <span style={{background:'#ffd70022',border:'1px solid #ffd70044',color:'#ffd700',fontSize:'9px',padding:'2px 8px',borderRadius:'2px',fontFamily:"'Courier New', monospace",letterSpacing:'2px'}}>#{1} {currentEntry.class}</span>
                   <span style={{background:tierStyle.bg,color:tierStyle.text,fontSize:'9px',fontWeight:'900',letterSpacing:'2px',padding:'2px 6px',fontFamily:"'Courier New', monospace",borderRadius:'2px'}}>{tierStyle.label}</span>
-                  <span style={{color:'#484f58',fontSize:'10px',fontFamily:"'Courier New', monospace",marginLeft:'auto'}}>{t('tapToView')}</span>
+                  <span style={{color:'#484f58',fontSize:'10px',fontFamily:"'Courier New', monospace",marginLeft:'auto'}}>TAP TO VIEW →</span>
                 </div>
+                {/* Gun SVG */}
                 <div style={{background:'#080b10',border:'1px solid #21262d',borderRadius:'3px',padding:'8px 12px',marginBottom:'10px'}}>
                   <svg width="100%" viewBox={vb} style={{display:'block'}}><g dangerouslySetInnerHTML={{__html:svg}}/></svg>
                 </div>
+                {/* Info row */}
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
                   <div>
                     <div style={{fontSize:'16px',fontWeight:'700',color:'#e6f0ff',fontFamily:"'Courier New', monospace",marginBottom:'2px'}}>{currentEntry.weapon_name}</div>
-                    <div style={{color:'#484f58',fontSize:'10px',fontFamily:"'Courier New', monospace"}}>{t('by')} {currentEntry.submitted_by||t('anonymous')} · {currentEntry.mode}</div>
+                    <div style={{color:'#484f58',fontSize:'10px',fontFamily:"'Courier New', monospace"}}>by {currentEntry.submitted_by||'Anonymous'} · {currentEntry.mode}</div>
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:'4px',flexShrink:0}}>
                     <span style={{color:'#ffd700',fontSize:'16px'}}>▲</span>
                     <span style={{color:'#ffd700',fontFamily:"'Courier New', monospace",fontSize:'20px',fontWeight:'700'}}>{currentEntry.votes||0}</span>
                   </div>
                 </div>
+                {/* Attachment preview tags */}
                 <div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginTop:'8px'}}>
-                  {Object.entries(SLOT_COLORS).slice(0,5).map(([slot,color])=>{const val=parsedAtts[slot];if(!val||val==='None')return null;return(<span key={slot} style={{background:'#161b22',border:`1px solid ${color}22`,color:'#8b949e',fontSize:'10px',padding:'2px 7px',borderRadius:'2px',fontFamily:"'Courier New', monospace"}}>{val}</span>);})}
+                  {Object.entries(SLOT_COLORS).slice(0,5).map(([slot,color])=>{
+                    const val=parsedAtts[slot];
+                    if(!val||val==='None')return null;
+                    return(<span key={slot} style={{background:'#161b22',border:`1px solid ${color}22`,color:'#8b949e',fontSize:'10px',padding:'2px 7px',borderRadius:'2px',fontFamily:"'Courier New', monospace"}}>{val}</span>);
+                  })}
                 </div>
+                {/* Progress dots */}
                 <div style={{display:'flex',justifyContent:'center',gap:'6px',marginTop:'12px'}}>
                   {CLASSES.map((_,i)=>(
                     <div key={i} onClick={e=>{e.stopPropagation();setCycleIdx(i);clearInterval(cycleRef.current);}} style={{width:cycleIdx===i?'16px':'6px',height:'6px',borderRadius:'3px',background:cycleIdx===i?'#ffd700':'#30363d',transition:'all 0.3s',cursor:'pointer'}}/>
@@ -721,14 +750,15 @@ function Leaderboard(){
   </>);
 }
 
+// ── SUBMIT LOADOUT ────────────────────────────────────────────────────────────
 function SubmitLoadout({activeTab,activeMode,onSubmitted,user,gamertag,onNeedAuth,weaponsList,allWeapons}){
-  const {t} = useLang();
   const[open,setOpen]=useState(false);const[weapon,setWeapon]=useState('');const[note,setNote]=useState('');const[videoUrl,setVideoUrl]=useState('');const[loading,setLoading]=useState(false);const[success,setSuccess]=useState(false);
   const[currentSlots,setCurrentSlots]=useState(BO6_WZ_SLOTS[activeTab]||BO6_WZ_SLOTS['Other']);
   const[attsLoading,setAttsLoading]=useState(false);
   const slotNames=Object.keys(currentSlots);
   const[atts,setAtts]=useState(()=>Object.fromEntries(slotNames.map(s=>[s,'None'])));
 
+  // When tab changes reset everything
   useEffect(()=>{
     setWeapon('');
     const s=BO6_WZ_SLOTS[activeTab]||BO6_WZ_SLOTS['Other'];
@@ -736,15 +766,18 @@ function SubmitLoadout({activeTab,activeMode,onSubmitted,user,gamertag,onNeedAut
     setAtts(Object.fromEntries(Object.keys(s).map(k=>[k,'None'])));
   },[activeTab]);
 
+  // When weapon changes, fetch BO7 attachments from Supabase
   useEffect(()=>{
     if(!weapon) return;
     const weaponData=allWeapons.find(w=>w.name===weapon);
     if(!weaponData || weaponData.game!=='BO7'){
+      // BO6/WZ — use hardcoded slots
       const s=BO6_WZ_SLOTS[activeTab]||BO6_WZ_SLOTS['Other'];
       setCurrentSlots(s);
       setAtts(Object.fromEntries(Object.keys(s).map(k=>[k,'None'])));
       return;
     }
+    // BO7 — fetch live from Supabase
     setAttsLoading(true);
     sbFetch(`weapon_attachments?class=eq.${activeTab}&games=cs.{BO7}&order=slot.asc,name.asc`)
       .then(data=>{
@@ -753,6 +786,7 @@ function SubmitLoadout({activeTab,activeMode,onSubmitted,user,gamertag,onNeedAut
           setCurrentSlots(slots);
           setAtts(Object.fromEntries(Object.keys(slots).map(k=>[k,'None'])));
         }else{
+          // fallback if no data
           const s=BO6_WZ_SLOTS[activeTab]||BO6_WZ_SLOTS['Other'];
           setCurrentSlots(s);
           setAtts(Object.fromEntries(Object.keys(s).map(k=>[k,'None'])));
@@ -762,49 +796,49 @@ function SubmitLoadout({activeTab,activeMode,onSubmitted,user,gamertag,onNeedAut
   },[weapon]);
 
   function handleOpen(){if(!user){onNeedAuth();return;}setOpen(o=>!o);}
-  async function handleSubmit(){if(!weapon)return;setLoading(true);const attList=Object.entries(atts).filter(([,v])=>v&&v!=='None').map(([slot,val])=>`${slot}: ${val}`);await sbFetch('loadouts',{method:'POST',body:JSON.stringify({weapon_name:weapon,class:activeTab,mode:activeMode,attachments:attList,note:note.trim(),submitted_by:gamertag||t('anonymous'),user_id:user?.id||null,video_url:videoUrl.trim()||null,votes:0})});setLoading(false);setSuccess(true);setWeapon('');setNote('');setVideoUrl('');setAtts(Object.fromEntries(Object.keys(currentSlots).map(s=>[s,'None'])));setTimeout(()=>{setSuccess(false);setOpen(false);onSubmitted();},1500);}
+  async function submit(){if(!weapon)return;setLoading(true);const attList=Object.entries(atts).filter(([,v])=>v&&v!=='None').map(([slot,val])=>`${slot}: ${val}`);await sbFetch('loadouts',{method:'POST',body:JSON.stringify({weapon_name:weapon,class:activeTab,mode:activeMode,attachments:attList,note:note.trim(),submitted_by:gamertag||'Anonymous',user_id:user?.id||null,video_url:videoUrl.trim()||null,votes:0})});setLoading(false);setSuccess(true);setWeapon('');setNote('');setVideoUrl('');setAtts(Object.fromEntries(Object.keys(currentSlots).map(s=>[s,'None'])));setTimeout(()=>{setSuccess(false);setOpen(false);onSubmitted();},1500);}
   const activeAttCount=Object.values(atts).filter(v=>v&&v!=='None').length;
   const vb=gunViewBox(activeTab);const svg=drawGunSVG(activeTab,atts);
   return(<div style={{marginBottom:'16px'}}>
-    <button onClick={handleOpen} style={{background:'#00e5ff22',border:'1px solid #00e5ff44',borderRadius:'3px',color:'#00e5ff',fontSize:'12px',padding:'12px 20px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'2px',width:'100%'}}>{open?t('cancelSubmit'):t('submitLoadout')}</button>
+    <button onClick={handleOpen} style={{background:'#00e5ff22',border:'1px solid #00e5ff44',borderRadius:'3px',color:'#00e5ff',fontSize:'12px',padding:'12px 20px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'2px',width:'100%'}}>{open?'✕ CANCEL':'+ SUBMIT YOUR LOADOUT'}</button>
     {open&&<div style={{background:'#0d1117',border:'1px solid #30363d',borderRadius:'4px',padding:'16px',marginTop:'8px',display:'grid',gap:'12px'}}>
       <div style={{background:'#080b10',border:'1px solid #21262d',borderRadius:'4px',padding:'10px 14px'}}>
-        <div style={{color:'#00e5ff',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'4px'}}>{weapon?`// ${weapon.toUpperCase()}`:t('selectWeapon')}</div>
-        <svg width="100%" viewBox={vb} style={{display:'block'}}>{weapon?<g dangerouslySetInnerHTML={{__html:svg}}/>:<text x="50%" y="50%" textAnchor="middle" fill="#484f58" fontSize="11" fontFamily="Courier New" letterSpacing="2">{t('buildBelow')}</text>}</svg>
-        <div style={{color:activeAttCount===9?'#00e5ff':activeAttCount>=5?'#ff8c00':'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",textAlign:'right'}}>{activeAttCount} / 9 {t('attachments')}</div>
+        <div style={{color:'#00e5ff',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'4px'}}>{weapon?`// ${weapon.toUpperCase()}`:'// SELECT WEAPON TO PREVIEW'}</div>
+        <svg width="100%" viewBox={vb} style={{display:'block'}}>{weapon?<g dangerouslySetInnerHTML={{__html:svg}}/>:<text x="50%" y="50%" textAnchor="middle" fill="#484f58" fontSize="11" fontFamily="Courier New" letterSpacing="2">// BUILD YOUR LOADOUT BELOW</text>}</svg>
+        <div style={{color:activeAttCount===9?'#00e5ff':activeAttCount>=5?'#ff8c00':'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",textAlign:'right'}}>{activeAttCount} / 9 ATTACHMENTS</div>
       </div>
-      <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>{t('weapon')}</div><WeaponDropdown weapons={weaponsList} value={weapon} onChange={setWeapon}/></div>
-      {attsLoading&&<div style={{color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',letterSpacing:'2px',textAlign:'center',padding:'12px'}}>{t('loadingAttachments')}</div>}
+      <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// WEAPON</div><WeaponDropdown weapons={weaponsList} value={weapon} onChange={setWeapon}/></div>
+      {attsLoading&&<div style={{color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'11px',letterSpacing:'2px',textAlign:'center',padding:'12px'}}>// LOADING ATTACHMENTS...</div>}
       {!attsLoading&&<>
-        <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>{t('coreAttachments')}</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.core.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
-        <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>{t('handlingControl')}</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.handle.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
-        <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>{t('fireMods')}</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.mods.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
+        <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// CORE ATTACHMENTS</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.core.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
+        <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// HANDLING & CONTROL</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.handle.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
+        <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// FIRE MODS</div><div style={{display:'grid',gap:'6px'}}>{Object.entries(currentSlots).filter(([slot])=>SLOT_GROUPS.mods.includes(slot)).map(([slot,opts])=><Dropdown key={slot} label={slot.toUpperCase()} placeholder={`Select ${slot}...`} options={opts} value={atts[slot]||'None'} onChange={val=>setAtts(p=>({...p,[slot]:val}))}/>)}</div></div>
       </>}
-      <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>{t('youtubeUrl')}</div><input style={inp} placeholder="Paste YouTube URL..." value={videoUrl} onChange={e=>setVideoUrl(e.target.value)}/></div>
-      <input style={inp} placeholder={t('notePlaceholder')} value={note} onChange={e=>setNote(e.target.value)}/>
-      <button onClick={handleSubmit} disabled={loading||success||!weapon} style={{background:success?'#00e5ff44':'#00e5ff22',border:'1px solid #00e5ff',borderRadius:'3px',color:'#00e5ff',fontSize:'14px',padding:'14px',cursor:weapon?'pointer':'not-allowed',fontFamily:"'Courier New', monospace",letterSpacing:'2px',opacity:weapon?1:0.5}}>{success?t('submitted'):loading?t('submitting'):t('submit')}</button>
+      <div><div style={{color:'#484f58',fontSize:'10px',letterSpacing:'2px',fontFamily:"'Courier New', monospace",marginBottom:'6px'}}>// YOUTUBE VIDEO (optional)</div><input style={inp} placeholder="Paste YouTube URL..." value={videoUrl} onChange={e=>setVideoUrl(e.target.value)}/></div>
+      <input style={inp} placeholder="// Note — tip, playstyle, range..." value={note} onChange={e=>setNote(e.target.value)}/>
+      <button onClick={submit} disabled={loading||success||!weapon} style={{background:success?'#00e5ff44':'#00e5ff22',border:'1px solid #00e5ff',borderRadius:'3px',color:'#00e5ff',fontSize:'14px',padding:'14px',cursor:weapon?'pointer':'not-allowed',fontFamily:"'Courier New', monospace",letterSpacing:'2px',opacity:weapon?1:0.5}}>{success?'✓ SUBMITTED!':loading?'SUBMITTING...':'SUBMIT'}</button>
     </div>}
   </div>);
 }
 
+// ── COMMENT SECTION ───────────────────────────────────────────────────────────
 function CommentSection({loadoutId,gamertag}){
-  const {t} = useLang();
   const[comments,setComments]=useState([]);const[input,setInput]=useState('');const[open,setOpen]=useState(false);const[loaded,setLoaded]=useState(false);
   async function loadComments(){const data=await sbFetch(`comments?loadout_id=eq.${loadoutId}&order=created_at.asc`);if(data)setComments(data);setLoaded(true);}
   function toggle(){if(!open&&!loaded)loadComments();setOpen(o=>!o);}
-  async function submit(){if(!input.trim())return;const data=await sbFetch('comments',{method:'POST',body:JSON.stringify({loadout_id:loadoutId,author:gamertag||t('anonymous'),body:input.trim()})});if(data)setComments(c=>[...c,...(Array.isArray(data)?data:[data])]);setInput('');}
+  async function submit(){if(!input.trim())return;const data=await sbFetch('comments',{method:'POST',body:JSON.stringify({loadout_id:loadoutId,author:gamertag||'Anonymous',body:input.trim()})});if(data)setComments(c=>[...c,...(Array.isArray(data)?data:[data])]);setInput('');}
   return(<div style={{marginTop:'12px',borderTop:'1px solid #21262d',paddingTop:'10px'}}>
-    <button onClick={toggle} style={{background:'none',border:'none',color:'#484f58',fontSize:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px',padding:'4px 0',minHeight:'44px'}}>{open?t('hideComments'):`${t('comments')} (${comments.length})`}</button>
+    <button onClick={toggle} style={{background:'none',border:'none',color:'#484f58',fontSize:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px',padding:'4px 0',minHeight:'44px'}}>{open?'// HIDE COMMENTS':`// COMMENTS (${comments.length})`}</button>
     {open&&<div style={{marginTop:'10px'}}>
-      {comments.length===0&&<div style={{color:'#484f58',fontSize:'12px',fontFamily:"'Courier New', monospace",marginBottom:'8px'}}>{t('noComments')}</div>}
+      {comments.length===0&&<div style={{color:'#484f58',fontSize:'12px',fontFamily:"'Courier New', monospace",marginBottom:'8px'}}>// no comments yet — be first</div>}
       {comments.map(c=><div key={c.id} style={{background:'#0d1117',border:'1px solid #21262d',borderRadius:'3px',padding:'10px',marginBottom:'6px'}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:'4px'}}><span style={{color:'#00e5ff',fontSize:'11px',fontFamily:"'Courier New', monospace"}}>{c.author}</span><span style={{color:'#484f58',fontSize:'11px',fontFamily:"'Courier New', monospace"}}>{new Date(c.created_at).toLocaleDateString()}</span></div><div style={{color:'#c9d1d9',fontSize:'13px',lineHeight:'1.4'}}>{c.body}</div></div>)}
-      <div style={{display:'grid',gap:'8px',marginTop:'10px'}}><input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder={t('dropThoughts')} style={{...inp,padding:'10px'}}/><button onClick={submit} style={{background:'#00e5ff22',border:'1px solid #00e5ff44',borderRadius:'3px',color:'#00e5ff',fontSize:'13px',padding:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",width:'100%'}}>{t('postComment')}</button></div>
+      <div style={{display:'grid',gap:'8px',marginTop:'10px'}}><input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submit()} placeholder="drop your thoughts..." style={{...inp,padding:'10px'}}/><button onClick={submit} style={{background:'#00e5ff22',border:'1px solid #00e5ff44',borderRadius:'3px',color:'#00e5ff',fontSize:'13px',padding:'12px',cursor:'pointer',fontFamily:"'Courier New', monospace",width:'100%'}}>POST COMMENT</button></div>
     </div>}
   </div>);
 }
 
+// ── LOADOUT CARD ──────────────────────────────────────────────────────────────
 function LoadoutCard({loadout,index,activeTab,user,onDeleted,weaponGame}){
-  const {t} = useLang();
   const[votes,setVotes]=useState(loadout.votes||0);const[userVote,setUserVote]=useState(null);const[deleting,setDeleting]=useState(false);
   const isOwner=user&&user.id===loadout.user_id;const ytId=getYouTubeId(loadout.video_url);const tier=getTier(votes);const tierStyle=TIER_COLORS[tier];
   const parsedAtts=parseAtts(loadout.attachments);const vb=gunViewBox(activeTab);const svg=drawGunSVG(activeTab,parsedAtts);
@@ -818,13 +852,13 @@ function LoadoutCard({loadout,index,activeTab,user,onDeleted,weaponGame}){
           <div style={{width:'4px',height:'32px',background:'linear-gradient(180deg,#00e5ff,#0077ff)',borderRadius:'2px',flexShrink:0}}/>
           <div style={{minWidth:0}}>
             <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'2px'}}>
-              <div style={{fontSize:'10px',color:'#00e5ff',letterSpacing:'2px',textTransform:'uppercase',fontFamily:"'Courier New', monospace"}}>{loadout.submitted_by||t('anonymous')}</div>
+              <div style={{fontSize:'10px',color:'#00e5ff',letterSpacing:'2px',textTransform:'uppercase',fontFamily:"'Courier New', monospace"}}>{loadout.submitted_by||'Anonymous'}</div>
               <span style={{background:gameBadge.bg,border:`1px solid ${gameBadge.color}44`,color:gameBadge.color,fontSize:'8px',padding:'1px 4px',borderRadius:'2px',fontFamily:"'Courier New', monospace",letterSpacing:'1px'}}>{gameBadge.label}</span>
             </div>
             <div style={{fontSize:'16px',fontWeight:'700',color:'#e6f0ff',fontFamily:"'Courier New', monospace"}}>{loadout.weapon_name}</div>
           </div>
         </div>
-        {isOwner&&<button onClick={handleDelete} disabled={deleting} style={{background:'#ff444411',border:'1px solid #ff444433',borderRadius:'3px',color:'#ff4444',fontSize:'11px',padding:'6px 10px',cursor:'pointer',fontFamily:"'Courier New', monospace",flexShrink:0,letterSpacing:'1px'}}>{deleting?'...':t('deleteLoadout')}</button>}
+        {isOwner&&<button onClick={handleDelete} disabled={deleting} style={{background:'#ff444411',border:'1px solid #ff444433',borderRadius:'3px',color:'#ff4444',fontSize:'11px',padding:'6px 10px',cursor:'pointer',fontFamily:"'Courier New', monospace",flexShrink:0,letterSpacing:'1px'}}>{deleting?'...':'DELETE'}</button>}
       </div>
       <div style={{marginTop:'10px',opacity:0.9}}><svg width="100%" viewBox={vb} style={{display:'block'}}><g dangerouslySetInnerHTML={{__html:svg}}/></svg></div>
     </div>
@@ -849,8 +883,8 @@ function LoadoutCard({loadout,index,activeTab,user,onDeleted,weaponGame}){
   </div>);
 }
 
+// ── HOME ──────────────────────────────────────────────────────────────────────
 export default function Home(){
-  const langData = useLanguage();
   const[active,setActive]=useState('AR');
   const[mode,setMode]=useState('Warzone');
   const[loadouts,setLoadouts]=useState([]);
@@ -860,7 +894,6 @@ export default function Home(){
   const[showAuth,setShowAuth]=useState(false);
   const[allWeapons,setAllWeapons]=useState([]);
   const[weaponsLoading,setWeaponsLoading]=useState(true);
-  const {t, lang, setLanguage} = langData;
 
   useEffect(()=>{
     async function fetchWeapons(){setWeaponsLoading(true);const data=await sbFetch('weapons?order=game.asc,name.asc');setAllWeapons(data||[]);setWeaponsLoading(false);}
@@ -869,6 +902,7 @@ export default function Home(){
 
   const weaponsList=allWeapons.filter(w=>w.class===active);
 
+  // ── REAL-TIME SYNC ── loadouts update instantly when admin deletes/anyone adds
   async function fetchLoadouts(){
     setLoading(true);
     const data=await sbFetch(`loadouts?class=eq.${active}&mode=eq.${mode}&order=votes.desc`);
@@ -878,12 +912,29 @@ export default function Home(){
 
   useEffect(()=>{
     fetchLoadouts();
+
+    // Subscribe to real-time changes on the loadouts table
+    const channel = new EventSource(
+      `${SUPABASE_URL}/rest/v1/loadouts?class=eq.${active}&mode=eq.${mode}&order=votes.desc`,
+    );
+
+    // Supabase realtime — proper client
     let realtimeChannel = null;
     try {
       const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-      realtimeChannel = supabase.channel('loadouts-db-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'loadouts' }, () => { fetchLoadouts(); }).subscribe();
-    } catch(e) { console.log('Realtime setup error:', e); }
+      realtimeChannel = supabase
+        .channel('loadouts-db-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'loadouts' }, () => {
+          fetchLoadouts();
+        })
+        .subscribe();
+    } catch(e) {
+      console.log('Realtime setup error:', e);
+    }
+
+    // Guaranteed fallback — poll every 10 seconds
     const poll = setInterval(fetchLoadouts, 10000);
+
     return () => {
       try { if(realtimeChannel) realtimeChannel.unsubscribe(); } catch(e) {}
       clearInterval(poll);
@@ -894,63 +945,59 @@ export default function Home(){
   async function handleLogout(){await fetch(`${SUPABASE_URL}/auth/v1/logout`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`}});setUser(null);setGamertag('');}
   function getWeaponGame(weaponName){const w=allWeapons.find(x=>x.name===weaponName);return w?.game||'Warzone';}
 
-  return(
-    <LangContext.Provider value={langData}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap');
-        *{box-sizing:border-box;margin:0;padding:0;}body{background:#080b10;}html{-webkit-text-size-adjust:100%;}
-        @keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-        button:hover{filter:brightness(1.2);}input,button{-webkit-appearance:none;}input:focus{outline:1px solid #00e5ff44;}
-        .tab-scroll{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid #21262d;}
-        .tab-scroll::-webkit-scrollbar{display:none;}
-        .tab-btn{flex-shrink:0;padding:12px 16px;background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:Rajdhani,sans-serif;transition:all 0.15s;margin-bottom:-1px;white-space:nowrap;}
-        .tab-btn.active{color:#00e5ff;border-bottom-color:#00e5ff;}.tab-btn:not(.active){color:#8b949e;}
-        ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:#0d1117;}::-webkit-scrollbar-thumb{background:#30363d;border-radius:2px;}
-      `}</style>
+  return(<>
+    <style>{`
+      @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap');
+      *{box-sizing:border-box;margin:0;padding:0;}body{background:#080b10;}html{-webkit-text-size-adjust:100%;}
+      @keyframes fadeSlideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+      button:hover{filter:brightness(1.2);}input,button{-webkit-appearance:none;}input:focus{outline:1px solid #00e5ff44;}
+      .tab-scroll{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-bottom:1px solid #21262d;}
+      .tab-scroll::-webkit-scrollbar{display:none;}
+      .tab-btn{flex-shrink:0;padding:12px 16px;background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:Rajdhani,sans-serif;transition:all 0.15s;margin-bottom:-1px;white-space:nowrap;}
+      .tab-btn.active{color:#00e5ff;border-bottom-color:#00e5ff;}.tab-btn:not(.active){color:#8b949e;}
+      ::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-track{background:#0d1117;}::-webkit-scrollbar-thumb{background:#30363d;border-radius:2px;}
+    `}</style>
 
-      {showAuth&&<AuthModal onClose={()=>setShowAuth(false)} onAuth={handleAuth}/>}
+    {showAuth&&<AuthModal onClose={()=>setShowAuth(false)} onAuth={handleAuth}/>}
 
-      <div style={{background:'#080b10',minHeight:'100vh',color:'#e6f0ff'}}>
-        <header style={{background:'linear-gradient(180deg,#0d1117 0%,#080b10 100%)',borderBottom:'1px solid #21262d',padding:'0 16px',position:'sticky',top:0,zIndex:100}}>
-          <div style={{maxWidth:'900px',margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:'54px'}}>
-            <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-              <div style={{width:'3px',height:'26px',background:'linear-gradient(180deg,#00e5ff,#0055ff)'}}/>
-              <LogoSVG size={110}/>
-              <div style={{background:'#00e5ff22',border:'1px solid #00e5ff44',color:'#00e5ff',fontSize:'8px',letterSpacing:'2px',padding:'2px 6px',fontFamily:"'Courier New', monospace"}}>{t('mvp')}</div>
-            </div>
-            <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-              <LangSwitcher/>
-              {user?(<div style={{display:'flex',alignItems:'center',gap:'10px'}}><span style={{color:'#00e5ff',fontFamily:"'Courier New', monospace",fontSize:'12px',letterSpacing:'1px'}}>{gamertag}</span><button onClick={handleLogout} style={{background:'none',border:'1px solid #30363d',borderRadius:'3px',color:'#484f58',fontSize:'11px',padding:'6px 10px',cursor:'pointer',fontFamily:"'Courier New', monospace"}}>{t('logout')}</button></div>):(<button onClick={()=>setShowAuth(true)} style={{background:'#00e5ff22',border:'1px solid #00e5ff44',borderRadius:'3px',color:'#00e5ff',fontSize:'11px',padding:'8px 14px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px'}}>{t('login')} / {t('signup')}</button>)}
-            </div>
+    <div style={{background:'#080b10',minHeight:'100vh',color:'#e6f0ff'}}>
+      <header style={{background:'linear-gradient(180deg,#0d1117 0%,#080b10 100%)',borderBottom:'1px solid #21262d',padding:'0 16px',position:'sticky',top:0,zIndex:100}}>
+        <div style={{maxWidth:'900px',margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between',height:'54px'}}>
+          {/* LOGO in header */}
+          <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+            <div style={{width:'3px',height:'26px',background:'linear-gradient(180deg,#00e5ff,#0055ff)'}}/>
+            <LogoSVG size={110}/>
+            <div style={{background:'#00e5ff22',border:'1px solid #00e5ff44',color:'#00e5ff',fontSize:'8px',letterSpacing:'2px',padding:'2px 6px',fontFamily:"'Courier New', monospace"}}>MVP</div>
           </div>
-        </header>
-
-        <div style={{maxWidth:'900px',margin:'0 auto',padding:'12px 16px 0'}}>
-          <div style={{display:'flex',background:'#0d1117',border:'1px solid #21262d',borderRadius:'4px',padding:'4px',gap:'4px'}}>
-            {MODES.map(m=><button key={m} onClick={()=>setMode(m)} style={{flex:1,padding:'10px',borderRadius:'3px',cursor:'pointer',fontFamily:'Rajdhani, sans-serif',fontSize:'13px',fontWeight:'700',letterSpacing:'2px',background:mode===m?(m==='Warzone'?'#00e5ff22':'#ff8c0022'):'transparent',border:mode===m?`1px solid ${m==='Warzone'?'#00e5ff44':'#ff8c0044'}`:'1px solid transparent',color:mode===m?(m==='Warzone'?'#00e5ff':'#ff8c00'):'#484f58',transition:'all 0.15s'}}>{m==='Warzone'?t('warzone'):t('multiplayer')}</button>)}
-          </div>
+          {user?(<div style={{display:'flex',alignItems:'center',gap:'10px'}}><span style={{color:'#00e5ff',fontFamily:"'Courier New', monospace",fontSize:'12px',letterSpacing:'1px'}}>{gamertag}</span><button onClick={handleLogout} style={{background:'none',border:'1px solid #30363d',borderRadius:'3px',color:'#484f58',fontSize:'11px',padding:'6px 10px',cursor:'pointer',fontFamily:"'Courier New', monospace"}}>LOGOUT</button></div>):(<button onClick={()=>setShowAuth(true)} style={{background:'#00e5ff22',border:'1px solid #00e5ff44',borderRadius:'3px',color:'#00e5ff',fontSize:'11px',padding:'8px 14px',cursor:'pointer',fontFamily:"'Courier New', monospace",letterSpacing:'1px'}}>LOGIN / SIGN UP</button>)}
         </div>
+      </header>
 
-        <div className="tab-scroll" style={{padding:'0 16px',maxWidth:'900px',margin:'0 auto'}}>
-          {TABS.map(tab=>(
-            <button key={tab} onClick={()=>setActive(tab)} className={`tab-btn${active===tab?' active':''}`}>
-              {tab}
-              {!weaponsLoading&&<span style={{fontSize:'9px',color:'#484f58',marginLeft:'4px',fontFamily:"'Courier New', monospace"}}>({allWeapons.filter(w=>w.class===tab).length})</span>}
-            </button>
-          ))}
+      <div style={{maxWidth:'900px',margin:'0 auto',padding:'12px 16px 0'}}>
+        <div style={{display:'flex',background:'#0d1117',border:'1px solid #21262d',borderRadius:'4px',padding:'4px',gap:'4px'}}>
+          {MODES.map(m=><button key={m} onClick={()=>setMode(m)} style={{flex:1,padding:'10px',borderRadius:'3px',cursor:'pointer',fontFamily:'Rajdhani, sans-serif',fontSize:'13px',fontWeight:'700',letterSpacing:'2px',background:mode===m?(m==='Warzone'?'#00e5ff22':'#ff8c0022'):'transparent',border:mode===m?`1px solid ${m==='Warzone'?'#00e5ff44':'#ff8c0044'}`:'1px solid transparent',color:mode===m?(m==='Warzone'?'#00e5ff':'#ff8c00'):'#484f58',transition:'all 0.15s'}}>{m==='Warzone'?'🟦 WARZONE':'🟧 MULTIPLAYER'}</button>)}
         </div>
-
-        <main style={{maxWidth:'900px',margin:'0 auto',padding:'16px'}}>
-          <Leaderboard/>
-          <SubmitLoadout activeTab={active} activeMode={mode} onSubmitted={fetchLoadouts} user={user} gamertag={gamertag} onNeedAuth={()=>setShowAuth(true)} weaponsList={weaponsList} allWeapons={allWeapons}/>
-          <div style={{display:'grid',gap:'12px'}}>
-            {loading&&<div style={{color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'12px',letterSpacing:'2px',padding:'40px',textAlign:'center'}}>{t('loadingLoadouts')}</div>}
-            {!loading&&loadouts.length===0&&<div style={{textAlign:'center',padding:'60px 20px',color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'13px',letterSpacing:'2px',border:'1px dashed #21262d',borderRadius:'4px'}}>{t('noLoadouts')}</div>}
-            {!loading&&loadouts.map((l,i)=><LoadoutCard key={l.id} loadout={l} index={i} activeTab={active} user={user} onDeleted={id=>setLoadouts(prev=>prev.filter(x=>x.id!==id))} weaponGame={getWeaponGame(l.weapon_name)}/>)}
-          </div>
-        </main>
-        <FeedbackButton gamertag={gamertag}/>
       </div>
-    </LangContext.Provider>
-  );
+
+      <div className="tab-scroll" style={{padding:'0 16px',maxWidth:'900px',margin:'0 auto'}}>
+        {TABS.map(tab=>(
+          <button key={tab} onClick={()=>setActive(tab)} className={`tab-btn${active===tab?' active':''}`}>
+            {tab}
+            {!weaponsLoading&&<span style={{fontSize:'9px',color:'#484f58',marginLeft:'4px',fontFamily:"'Courier New', monospace"}}>({allWeapons.filter(w=>w.class===tab).length})</span>}
+          </button>
+        ))}
+      </div>
+
+      <main style={{maxWidth:'900px',margin:'0 auto',padding:'16px'}}>
+        <Leaderboard/>
+        <SubmitLoadout activeTab={active} activeMode={mode} onSubmitted={fetchLoadouts} user={user} gamertag={gamertag} onNeedAuth={()=>setShowAuth(true)} weaponsList={weaponsList} allWeapons={allWeapons}/>
+        <div style={{display:'grid',gap:'12px'}}>
+          {loading&&<div style={{color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'12px',letterSpacing:'2px',padding:'40px',textAlign:'center'}}>// LOADING LOADOUTS...</div>}
+          {!loading&&loadouts.length===0&&<div style={{textAlign:'center',padding:'60px 20px',color:'#484f58',fontFamily:"'Courier New', monospace",fontSize:'13px',letterSpacing:'2px',border:'1px dashed #21262d',borderRadius:'4px'}}>// NO LOADOUTS YET — BE THE FIRST TO SUBMIT</div>}
+          {!loading&&loadouts.map((l,i)=><LoadoutCard key={l.id} loadout={l} index={i} activeTab={active} user={user} onDeleted={id=>setLoadouts(prev=>prev.filter(x=>x.id!==id))} weaponGame={getWeaponGame(l.weapon_name)}/>)}
+        </div>
+      </main>
+      <FeedbackButton gamertag={gamertag}/>
+    </div>
+  </>);
 }
